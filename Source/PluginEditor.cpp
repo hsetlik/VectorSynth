@@ -14,6 +14,7 @@
 WavetableSynthesizerAudioProcessorEditor::WavetableSynthesizerAudioProcessorEditor (WavetableSynthesizerAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    this->setResizable(true, true);
     addAndMakeVisible(&freqSlider);
     freqSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     freqSlider.setRange(20.0f, 20000.0f);

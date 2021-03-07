@@ -11,7 +11,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "WavetableData.h"
-const int TABLESIZE = 1024;
+const int TABLESIZE = 2048;
 const int NUMTABLES = 32;
 const int fftOrder = 10;
 struct WaveTable
@@ -29,12 +29,11 @@ struct WaveTable
     double* table; //c-array of samples
 };
 
-//TODO: this class should take in a vector of wave data and create all the appropriate band-limited wavetables needed for 20-20k Hz
-class WToscillator
+class WTframe
 {
 public:
-    WToscillator(std::vector<float> t);
-    ~WToscillator() {}
+    WTframe(std::vector<float> t);
+    ~WTframe() {}
     void setSampleRate(double rate)
     {
         sampleRate = rate;
@@ -54,5 +53,33 @@ private:
     int bottomSampleIndex;
     float sampleDiff;
     float skew;
+};
+
+class WavetableOsc
+{
+public:
+    WavetableOsc(std::vector<float> inData);
+    ~WavetableOsc() {}
+    void addFrame(std::vector<float> inData);
+    void addFrame(float* input, int size);
+    float getSample(double freq);
+    void setPosition(float index) //works such that the position can be set either by the exact index or by a proportion of the total length
+    {
+        if(index <= 1.0f)
+            framePos = numFrames * index;
+        else
+            framePos = (double) index;
+        if(!frameInterp)
+            framePos = floor(framePos);
+    }
+    const int MAX_FRAMES = 256;
+private:
+    bool frameInterp; //determines whether the oscillator should interpolate between frames or only take values directly from one frame
+    int numFrames;
+    double framePos;
+    float bottomSample;
+    float topSample;
+    float skew;
+    juce::OwnedArray<WTframe> frames;
 };
 

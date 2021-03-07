@@ -55,7 +55,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     juce::AudioProcessorValueTreeState tree;
 private:
-    WToscillator osc;
+    WTframe osc;
     double frequency;
     
     //==============================================================================
