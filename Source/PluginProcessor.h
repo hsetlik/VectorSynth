@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include "WavetableProcessor.h"
-
+#include "SliderTypes.h"
 //==============================================================================
 /**
 */

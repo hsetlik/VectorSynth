@@ -12,10 +12,11 @@
 
 //==============================================================================
 WavetableSynthesizerAudioProcessorEditor::WavetableSynthesizerAudioProcessorEditor (WavetableSynthesizerAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), dial(AttackSlider, 1), audioProcessor (p)
 {
     this->setResizable(true, true);
     addAndMakeVisible(&freqSlider);
+    addAndMakeVisible(&dial);
     freqSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     freqSlider.setRange(20.0f, 20000.0f);
     freqAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(p.tree, "frequency", freqSlider));
@@ -39,9 +40,7 @@ void WavetableSynthesizerAudioProcessorEditor::paint (juce::Graphics& g)
 
 void WavetableSynthesizerAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
     auto n = getWidth() / 12;
-    
-    freqSlider.setBounds(n * 2, n * 2, n * 10, n * 3);
+    dial.setBounds(7 * n, 2 * n, 3 * n, 4 * n);
+    freqSlider.setBounds(n * 2, n * 2, n * 5, n * 2);
 }

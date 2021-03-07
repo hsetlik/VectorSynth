@@ -6,6 +6,10 @@
   <MAINGROUP id="EDZ1al" name="WavetableSynthesizer">
     <GROUP id="{47981B43-156D-D148-03BB-4D5BF0740A36}" name="Source">
       <GROUP id="{D4DCC467-BDA7-DEE5-F617-94CC4E1344FB}" name="Components">
+        <FILE id="M2RHhU" name="DAHDSRGraph.cpp" compile="1" resource="0" file="Source/DAHDSRGraph.cpp"/>
+        <FILE id="LQtqbK" name="DAHDSRGraph.h" compile="0" resource="0" file="Source/DAHDSRGraph.h"/>
+        <FILE id="DOwBR9" name="SliderTypes.cpp" compile="1" resource="0" file="Source/SliderTypes.cpp"/>
+        <FILE id="FyYTiC" name="SliderTypes.h" compile="0" resource="0" file="Source/SliderTypes.h"/>
         <FILE id="P0iVhw" name="SourcePanel.cpp" compile="1" resource="0" file="Source/SourcePanel.cpp"/>
         <FILE id="Zbcb4y" name="SourcePanel.h" compile="0" resource="0" file="Source/SourcePanel.h"/>
         <FILE id="DHpJf5" name="VectorField.cpp" compile="1" resource="0" file="Source/VectorField.cpp"/>

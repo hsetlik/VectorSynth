@@ -37,3 +37,36 @@ void ModSystemLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, int
         thumb.addCentredArc(centerX, centerY, radius, radius, 0.0f, midAngle, rotaryStartAngle + angle, true);
     g.strokePath(thumb, strokeType);
 }
+
+SynthSourceLookAndFeel::SynthSourceLookAndFeel()
+{
+    colors.add(Color::RGBColor(55, 56, 68), "dullerGray");
+    colors.add(Color::RGBColor(125, 126, 129), "dullGray");
+    colors.add(Color::RGBColor(255, 236, 95), "thumbYellow");
+    colors.add(Color::RGBColor(32, 139, 181), "thumbBlue");
+}
+
+void SynthSourceLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, int width, int height, float sliderPos, const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider &s)
+{
+    auto iBounds = juce::Rectangle<int> {x, y, width, height};
+    auto fBounds = iBounds.toFloat();
+    g.setColour(colors.getByDesc("dullerGray"));
+    g.fillEllipse(fBounds);
+    g.setColour(colors.getByDesc("dullGray"));
+    auto angle = fabs(rotaryStartAngle - rotaryEndAngle) * sliderPos;
+    auto centerX = fBounds.getX() + (fBounds.getWidth() / 2.0f);
+    auto centerY = fBounds.getY() + (fBounds.getHeight() / 2.0f);
+    auto radius = fBounds.getWidth() * 0.4f;
+    auto strokeType = juce::PathStrokeType(5.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
+    juce::Path track;
+    track.addCentredArc(centerX, centerY, radius, radius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
+    g.strokePath(track, strokeType);
+    g.setColour(colors.getByDesc("thumbYellow"));
+    auto iRadius = radius * 0.6f;
+    juce::Path thumb;
+    thumb.startNewSubPath(centerX, centerY - radius);
+    thumb.lineTo(centerX, centerY - iRadius);
+    thumb.closeSubPath();
+    thumb.applyTransform(juce::AffineTransform::rotation(rotaryStartAngle + angle, centerX, centerY));
+    g.strokePath(thumb, strokeType);
+};
