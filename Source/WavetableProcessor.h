@@ -73,13 +73,13 @@ public:
             framePos = floor(framePos);
     }
     const int MAX_FRAMES = 256;
+    juce::OwnedArray<WTframe> frames;
+    int numFrames;
 private:
     bool frameInterp; //determines whether the oscillator should interpolate between frames or only take values directly from one frame
-    int numFrames;
     double framePos;
     float bottomSample;
     float topSample;
     float skew;
-    juce::OwnedArray<WTframe> frames;
 };
 

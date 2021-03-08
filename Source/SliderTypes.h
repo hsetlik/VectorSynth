@@ -55,7 +55,7 @@ public:
         juce::String labelText;
         auto valueToDraw = source->getValue();
         auto fullString = juce::String(valueToDraw);
-        if(suffix == " ")
+        if(suffix == "")
         {
             labelText = fullString;
         }

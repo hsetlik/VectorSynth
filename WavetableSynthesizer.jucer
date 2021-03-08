@@ -5,6 +5,12 @@
               jucerFormatVersion="1" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
   <MAINGROUP id="EDZ1al" name="WavetableSynthesizer">
     <GROUP id="{47981B43-156D-D148-03BB-4D5BF0740A36}" name="Source">
+      <GROUP id="{C19914AF-4B48-C2F9-5489-14818D5B3580}" name="WavetableIO">
+        <FILE id="dqZEL4" name="AudioFileLoader.cpp" compile="1" resource="0"
+              file="Source/AudioFileLoader.cpp"/>
+        <FILE id="ZkTiyJ" name="AudioFileLoader.h" compile="0" resource="0"
+              file="Source/AudioFileLoader.h"/>
+      </GROUP>
       <GROUP id="{D4DCC467-BDA7-DEE5-F617-94CC4E1344FB}" name="Components">
         <FILE id="M2RHhU" name="DAHDSRGraph.cpp" compile="1" resource="0" file="Source/DAHDSRGraph.cpp"/>
         <FILE id="LQtqbK" name="DAHDSRGraph.h" compile="0" resource="0" file="Source/DAHDSRGraph.h"/>
@@ -18,6 +24,10 @@
         <FILE id="Zbcb4y" name="SourcePanel.h" compile="0" resource="0" file="Source/SourcePanel.h"/>
         <FILE id="DHpJf5" name="VectorField.cpp" compile="1" resource="0" file="Source/VectorField.cpp"/>
         <FILE id="VOqYAU" name="VectorField.h" compile="0" resource="0" file="Source/VectorField.h"/>
+        <FILE id="mojkiG" name="WavetableComponent.cpp" compile="1" resource="0"
+              file="Source/WavetableComponent.cpp"/>
+        <FILE id="eYsluH" name="WavetableComponent.h" compile="0" resource="0"
+              file="Source/WavetableComponent.h"/>
       </GROUP>
       <GROUP id="{EA2092CB-E0AE-00BD-BD3F-C638FC4F7B2D}" name="PluginCore">
         <FILE id="S4m1TE" name="PluginProcessor.cpp" compile="1" resource="0"
