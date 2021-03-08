@@ -72,16 +72,14 @@ public:
     float getSample(double freq);
     void setPosition(float index)
     {
-        framePos = (double) index;
-        if(!frameInterp)
-            framePos = floor(index);
+        framePos = (double) index * numFrames;
     }
     std::vector<std::vector<float>> getFrameVectors(int resolution);
     const int MAX_FRAMES = 256;
     juce::OwnedArray<WTframe, juce::CriticalSection> frames;
     int numFrames;
 private:
-    bool frameInterp; //determines whether the oscillator should interpolate between frames or only take values directly from one frame
+    int topIndex, bottomIndex;
     double framePos;
     float bottomSample;
     float topSample;

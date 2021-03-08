@@ -32,8 +32,7 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                        ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(saw512)
 #endif
 {
-    osc.addFrame(series3Square512);
-    osc.addFrame(triangle512);
+    
 }
 
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()
@@ -146,14 +145,12 @@ void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>&
 {
     buffer.clear();
     frequency = (double)*tree.getRawParameterValue("frequency");
-    wtPos = *tree.getRawParameterValue("wavetablePos");
-    osc.setPosition(wtPos * osc.frames.size());
         for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
-            auto _sample = osc.getSample(frequency);
+            lastSample = osc.getSample(frequency);
             for(int channel = 0; channel < 2; ++channel)
             {
-                buffer.addSample(channel, sample, _sample * 0.25f);
+                buffer.addSample(channel, sample, lastSample * 0.25f);
             }
         }
 }
