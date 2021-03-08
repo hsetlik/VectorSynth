@@ -58,19 +58,22 @@ private:
 class WavetableOsc
 {
 public:
+    WavetableOsc(); //default constructor just creates one frame with the saw512 table
     WavetableOsc(std::vector<float> inData);
     ~WavetableOsc() {}
+    void setSampleRate(double newRate)
+    {
+        for(auto i : frames)
+            i->setSampleRate(newRate);
+    }
     void addFrame(std::vector<float> inData);
     void addFrame(float* input, int size);
     float getSample(double freq);
-    void setPosition(float index) //works such that the position can be set either by the exact index or by a proportion of the total length
+    void setPosition(float index)
     {
-        if(index <= 1.0f)
-            framePos = numFrames * index;
-        else
-            framePos = (double) index;
+        framePos = (double) index;
         if(!frameInterp)
-            framePos = floor(framePos);
+            framePos = floor(index);
     }
     const int MAX_FRAMES = 256;
     juce::OwnedArray<WTframe> frames;

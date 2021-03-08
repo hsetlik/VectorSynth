@@ -28,6 +28,7 @@ AudioWavetableHandler::AudioWavetableHandler()
         audioFolder.setAsCurrentWorkingDirectory();
         printf("wave folder created\n");
     }
+    printf("Folder is at: %s\n", audioFolder.getFullPathName().toRawUTF8());
     auto files = audioFolder.findChildFiles(juce::File::findFiles, true);
     numFiles = 0;
     if(files.size() > 0)
@@ -40,6 +41,7 @@ AudioWavetableHandler::AudioWavetableHandler()
             {
                 wavFiles.add(i);
                 tableNames.add(name);
+                printf(".wav found: %s\n", i.getFileName().toRawUTF8());
             }
         }
     }
@@ -49,7 +51,8 @@ void AudioWavetableHandler::oscFromFile(WavetableOsc* osc, juce::String fileName
 {
     auto idx = tableNames.indexOf(fileName);
     auto file = wavFiles[idx]; //grip the appropriate wav file
-    auto* reader = manager.createReaderFor(file);
+    reader = manager.createReaderFor(file);
+    printf("Loading table set: %s\n", fileName.toRawUTF8());
     auto numSamples = reader->lengthInSamples;
     auto numFrames = floor(numSamples / TABLESIZE);
     long currentSample = 0;
@@ -74,5 +77,6 @@ void AudioWavetableHandler::oscFromFile(WavetableOsc* osc, juce::String fileName
         vec.clear();
         buffer.clear();
         currentSample += TABLESIZE;
+        printf("Loaded Table %d from sample %ld\n", i, currentSample);
     }
 }

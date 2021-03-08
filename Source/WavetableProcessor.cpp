@@ -204,7 +204,12 @@ float WTframe::getSample(double frequency)
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
     return output;
 }
-WavetableOsc::WavetableOsc(std::vector<float> data) : frameInterp(false), numFrames(0), framePos(0.0f)
+WavetableOsc::WavetableOsc()
+{
+    addFrame(saw512);
+}
+
+WavetableOsc::WavetableOsc(std::vector<float> data) : numFrames(0), frameInterp(false), framePos(0.0f)
 {
     addFrame(data);
 }

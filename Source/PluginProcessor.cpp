@@ -30,7 +30,7 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                        ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(saw512)
 #endif
 {
-    
+    tableHandler.oscFromFile(&osc, tableHandler.nameAtIndex(1)); 
 }
 
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()

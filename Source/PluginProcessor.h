@@ -12,6 +12,7 @@
 #include "WavetableProcessor.h"
 #include "SliderTypes.h"
 #include "DragDropContainer.h"
+#include "AudioFileLoader.h"
 //==============================================================================
 /**
 */
@@ -56,9 +57,9 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     juce::AudioProcessorValueTreeState tree;
 private:
-    WTframe osc;
+    WavetableOsc osc;
     double frequency;
-    
+    AudioWavetableHandler tableHandler;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthesizerAudioProcessor)
 };
