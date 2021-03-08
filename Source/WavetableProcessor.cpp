@@ -151,7 +151,7 @@ int WToscillator::createTables(double *waveReal, double *waveImag, int numSample
 }
 float WToscillator::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
 {
-    printf("Table #%d limit: %f\n", tablesAdded, topFreq);
+    printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
     if(tablesAdded <= NUMTABLES)
     {
         tables.add(new WaveTable(numSamples, topFreq, waveImag));
@@ -192,7 +192,7 @@ WaveTable* WToscillator::tableForFreq(double frequency)
 
 float WToscillator::getSample(double frequency)
 {
-    posDelta = 1.0f / (sampleRate / frequency);
+    posDelta = (float)(frequency / sampleRate);
     auto table = tableForFreq(posDelta);
     position += posDelta;
     if(position > 1.0f)

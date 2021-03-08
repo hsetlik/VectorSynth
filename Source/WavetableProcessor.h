@@ -29,7 +29,6 @@ struct WaveTable
     double* table; //c-array of samples
 };
 
-//TODO: this class should take in a vector of wave data and create all the appropriate band-limited wavetables needed for 20-20k Hz
 class WToscillator
 {
 public:

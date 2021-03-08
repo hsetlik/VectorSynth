@@ -27,7 +27,7 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(saw512)
+                       ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(series2Square512)
 #endif
 {
     
