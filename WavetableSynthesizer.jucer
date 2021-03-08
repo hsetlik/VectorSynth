@@ -8,6 +8,10 @@
       <GROUP id="{D4DCC467-BDA7-DEE5-F617-94CC4E1344FB}" name="Components">
         <FILE id="M2RHhU" name="DAHDSRGraph.cpp" compile="1" resource="0" file="Source/DAHDSRGraph.cpp"/>
         <FILE id="LQtqbK" name="DAHDSRGraph.h" compile="0" resource="0" file="Source/DAHDSRGraph.h"/>
+        <FILE id="fGnZk6" name="EnvelopeComponent.cpp" compile="1" resource="0"
+              file="Source/EnvelopeComponent.cpp"/>
+        <FILE id="y4u9xI" name="EnvelopeComponent.h" compile="0" resource="0"
+              file="Source/EnvelopeComponent.h"/>
         <FILE id="DOwBR9" name="SliderTypes.cpp" compile="1" resource="0" file="Source/SliderTypes.cpp"/>
         <FILE id="FyYTiC" name="SliderTypes.h" compile="0" resource="0" file="Source/SliderTypes.h"/>
         <FILE id="P0iVhw" name="SourcePanel.cpp" compile="1" resource="0" file="Source/SourcePanel.cpp"/>

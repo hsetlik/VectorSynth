@@ -36,14 +36,15 @@ sRelease(Release)
 
 void DAHDSRGraph::grabValues()
 {
-    if(sAttack->getValue() > 0.0f)
+    auto exp = 1.0f / 2.0f;
+    if(sAttack->getValue() >= 0.0f)
     {
-        fDelay = sDelay->getValue();
-        fAttack = sAttack->getValue();
-        fHold = sHold->getValue();
-        fDecay = sDecay->getValue();
+        fDelay = pow(sDelay->getValue(), exp);
+        fAttack = pow(sAttack->getValue(), exp);
+        fHold = pow(sHold->getValue(), exp);
+        fDecay = pow(sDecay->getValue(), exp);
         fSustain = sSustain->getValue();
-        fRelease = sRelease->getValue();
+        fRelease = pow(sRelease->getValue(), exp);
     }
 }
 

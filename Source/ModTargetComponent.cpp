@@ -55,18 +55,19 @@ void RemoveButton::paintButton(juce::Graphics &g, bool, bool)
 
 void SourceButtonGroup::resized()
 {
-    //reserve the middle third of the component for the drag/drop target
+    //reserve the middle two thirds of the component for the drag/drop target
+    //target dimensions = 6n, 1.5n on either side
     auto n = getBounds().toFloat().getWidth() /  9.0f;
-    closeButton.setBounds(4.0f * n, 1.8f * n, n, n);
+    closeButton.setBounds(4.5f * n, 0.0f, 1.2f * n, 1.2f * n);
     //determine the position of selector based on number of sources
     //distance from center of target to Center  selButton is always (1.5 * n) + n / 2 = 2 * n
     auto increment = juce::MathConstants<float>::twoPi / 10;
-    auto angle = sourceIndex * increment;
+    auto angle = (sourceIndex) * increment;
     auto fortyFive = increment * 1.5f;
     //center of the component
     auto xCenter = 4.5f * n;
     auto yCenter = 4.5f * n;
-    selButton.setBounds(4.0f * n, 6.2f * n, n, n);
+    selButton.setBounds(3.4f * n, 7.7f * n, 1.5f * n, 1.5f * n);
     closeButton.setTransform(juce::AffineTransform::rotation(fortyFive, xCenter, yCenter));
     selButton.setTransform(juce::AffineTransform::rotation(angle, xCenter, yCenter));
 }
@@ -78,18 +79,17 @@ void SourceButtonGroup::resized()
     center.addEllipse(selButton.getBounds().toFloat().expanded(0.1f * n));
     auto selBounds = selButton.getBounds().toFloat().expanded(0.1f * n);
     center.startNewSubPath(selBounds.getX(), selBounds.getY() + (selBounds.getHeight() / 2));
-    auto targetBounds = juce::Rectangle<float> {3.0f * n, 3.0f * n, 3.0f * n, 3.0f * n};
+    auto targetBounds = juce::Rectangle<float> {1.75f * n, 1.75f * n, 5.5f * n, 5.5f * n};
     juce::Path middle;
     middle.addEllipse(targetBounds.expanded(0.2f * n));
     g.fillPath(middle);
     center.lineTo(targetBounds.getX() + n, 4.5f * n);
     center.lineTo(targetBounds.getRight() - n, 4.5f * n);
-    center.lineTo(selBounds.getRight(), selBounds.getY() + (selBounds.getHeight() / 2));
+    center.lineTo(selBounds.getRight(), selBounds.getY() + (selBounds.getHeight() / 2.0f));
     center.closeSubPath();
-    
     auto increment = juce::MathConstants<float>::twoPi / 10;
-    auto angle = sourceIndex * increment;
-    center.applyTransform(juce::AffineTransform::rotation(angle, getWidth() / 2.0f, getWidth() / 2.0f));
+    auto angle = (sourceIndex) * increment;
+    center.applyTransform(juce::AffineTransform::rotation(angle, n * 4.5f, n * 4.5f));
     g.fillPath(center);
     juce::Path close;
     auto closeBounds = closeButton.getBounds().toFloat().expanded(0.2f * n);
@@ -99,19 +99,19 @@ void SourceButtonGroup::resized()
     close.lineTo(targetBounds.getRight() - n, 4.5f * n);
     close.lineTo(targetBounds.getX() + n, 4.5f * n);
     close.closeSubPath();
-    close.applyTransform(juce::AffineTransform::rotation(increment * 1.5f, getWidth() / 2.0f, getWidth() / 2.0f));
+    close.applyTransform(juce::AffineTransform::rotation(increment * 1.5f, n * 4.5f, n * 4.5f));
     g.fillPath(close);
     
 }
 
-ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSources(0), target(c, this), container(c)
+ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSources(0), mTarget(c, this), container(c)
 {
     setInterceptsMouseClicks(true, true);
     selectedGroup = nullptr;
     selectedSlider = nullptr;
-    addAndMakeVisible(&target);
+    addAndMakeVisible(&mTarget);
     //addMouseListener(this, true);
-    target.toFront(true);
+    mTarget.toFront(true);
     targetColors.add(Color::monochromeFrom(Color::RGBColor(169, 179, 193)));
 }
 
@@ -159,8 +159,8 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
         if(sources.size() == 0) //don't need to check for duplicates if there are 0 sources
         {
             ++numSources;
-            sources.add(new SourceButtonGroup(target.getNewSource(), numSources, this));
-            sliders.add(new DepthSlider(target.getNewSource()));
+            sources.add(new SourceButtonGroup(mTarget.getNewSource(), numSources, this));
+            sliders.add(new DepthSlider(mTarget.getNewSource()));
             addAndMakeVisible(sources.getLast());
             addAndMakeVisible(sliders.getLast());
         }
@@ -168,13 +168,13 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
         {
             bool added = false;
             for(auto i : sources)
-                if(i->getId() == target.getNewSource()->getId())
+                if(i->getId() == mTarget.getNewSource()->getId())
                     added = true;
             if(!added)
             {
                 ++numSources;
-                sources.add(new SourceButtonGroup(target.getNewSource(), numSources, this));
-                sliders.add(new DepthSlider(target.getNewSource()));
+                sources.add(new SourceButtonGroup(mTarget.getNewSource(), numSources, this));
+                sliders.add(new DepthSlider(mTarget.getNewSource()));
                 addAndMakeVisible(sources.getLast());
                 addAndMakeVisible(sliders.getLast());
             }
@@ -192,7 +192,7 @@ void ModTargetComponent::resized()
         for(auto* i : sources)
         {
             auto n = getWidth() / 9.0f;
-            auto centerBounds = juce::Rectangle<float> {getWidth() / 3.0f, getWidth() / 3.0f, getWidth() / 3.0f, getWidth() / 3.0f};
+            auto centerBounds = juce::Rectangle<float> {1.5f * n, 1.5f * n, 6.0f * n, 6.0f * n};
             auto sliderBounds = centerBounds.expanded(0.25f * n).toNearestInt();
             sliders[count]->setBounds(sliderBounds);
             auto colorId = "ColorL" + juce::String(count);
@@ -206,13 +206,13 @@ void ModTargetComponent::resized()
             ++count;
         }
     }
-    target.setBounds(getWidth() / 3, getHeight() / 3, getHeight() / 3, getHeight() / 3);
-    target.toFront(true);
+    mTarget.setBounds(getWidth() / 3, getHeight() / 3, getHeight() / 3, getHeight() / 3);
+    mTarget.toFront(true);
     if(validSelected)
     {
-        selectedGroup->toBehind(&target);
+        selectedGroup->toBehind(&mTarget);
         
-        selectedSlider->toBehind(&target);
+        selectedSlider->toBehind(&mTarget);
     }
     
    
@@ -223,3 +223,117 @@ void ModTargetComponent::paint(juce::Graphics &g)
 {
 
 }
+
+
+ModTargetSlider::ModTargetSlider(juce::DragAndDropContainer* c) : numSources(0), mTarget(c, this), container(c)
+{
+    setInterceptsMouseClicks(true, true);
+    selectedGroup = nullptr;
+    selectedSlider = nullptr;
+    addAndMakeVisible(&mTarget);
+    //addMouseListener(this, true);
+    mTarget.toFront(true);
+    targetColors.add(Color::monochromeFrom(Color::RGBColor(169, 179, 193)));
+}
+
+void ModTargetSlider::buttonClicked(juce::Button *b)
+{
+    SelectorButton* sel;
+    RemoveButton* rem;
+    if((sel = dynamic_cast<SelectorButton*>(b)))
+    {
+        auto src = dynamic_cast<SourceButtonGroup*>(sel->getParentComponent());
+        selectedGroup = src;
+        selectedSlider = sliders[sources.indexOf(src)];
+        printf("Group %d selected\n", sources.indexOf(selectedGroup));
+    }
+    else if ((rem = dynamic_cast<RemoveButton*>(b)))
+    {
+        auto src = dynamic_cast<SourceButtonGroup*>(rem->getParentComponent());
+            if(selectedGroup == src)
+            {
+                if(sources.size() > 0)
+                {
+                    selectedGroup = sources.getLast();
+                    selectedSlider = sliders[sources.indexOf(selectedGroup)];
+                }
+                else
+                {
+                    selectedGroup = nullptr;
+                    selectedSlider = nullptr;
+                }
+            }
+            auto index = sources.indexOf(src);
+            sliders.remove(index);
+            sources.removeObject(src);
+            --numSources;
+            int ind = 1;
+            for(auto i : sources)
+            {
+                i->setIndex(ind);
+                ++ind;
+            }
+            repaint();
+    }
+    else
+    {
+        if(sources.size() == 0) //don't need to check for duplicates if there are 0 sources
+        {
+            ++numSources;
+            sources.add(new SourceButtonGroup(mTarget.getNewSource(), numSources, this));
+            sliders.add(new DepthSlider(mTarget.getNewSource()));
+            addAndMakeVisible(sources.getLast());
+            addAndMakeVisible(sliders.getLast());
+        }
+        else //check for duplicates
+        {
+            bool added = false;
+            for(auto i : sources)
+                if(i->getId() == mTarget.getNewSource()->getId())
+                    added = true;
+            if(!added)
+            {
+                ++numSources;
+                sources.add(new SourceButtonGroup(mTarget.getNewSource(), numSources, this));
+                sliders.add(new DepthSlider(mTarget.getNewSource()));
+                addAndMakeVisible(sources.getLast());
+                addAndMakeVisible(sliders.getLast());
+            }
+        }
+    }
+    resized();
+}
+
+void ModTargetSlider::resized()
+{
+    bool validSelected = false;
+    auto n = getWidth() / 9.0f;
+    auto centerBounds = juce::Rectangle<float> {1.75f * n, 1.75f * n, 5.5f * n, 5.5f * n};
+    if(sources.size() > 0)
+    {
+        int count = 0;
+        for(auto* i : sources)
+        {
+            auto sliderBounds = centerBounds.toNearestInt().expanded(0.4f * n);
+            sliders[count]->setBounds(sliderBounds);
+            auto colorId = "ColorL" + juce::String(count);
+            auto color = targetColors.getByDesc(colorId);
+            i->setBackground(color);
+            i->setBounds(0, 0, getWidth(), getHeight());
+            i->resized();
+            i->buttonsToFront();
+            if(i == selectedGroup)
+                validSelected = true;
+            ++count;
+        }
+    }
+    mTarget.setBounds(centerBounds.toNearestInt());
+    mTarget.toFront(true);
+    if(validSelected)
+    {
+        selectedGroup->toBehind(&mTarget);
+        
+        selectedSlider->toBehind(&mTarget);
+    }
+}
+

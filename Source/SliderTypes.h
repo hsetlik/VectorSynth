@@ -12,10 +12,11 @@
 #include <JuceHeader.h>
 #include "RgbColor.h"
 #include "CustomLnFs.h"
+#include "ModTargetComponent.h"
 
 enum EnvSliderType
 {
-    DelaySlider,
+    DelaySlider = 0,
     AttackSlider,
     HoldSlider,
     DecaySlider,
@@ -44,7 +45,7 @@ public:
         else
             tempText = fullString.substring(0, 4);
         auto labelText = tempText +  suffix;
-        if(suffix == " ")
+        if(suffix == "")
             labelText = tempText;
         setText(labelText, juce::dontSendNotification);
     }
@@ -80,57 +81,57 @@ public:
     std::string suffix;
 };
 
-class EnvelopeDial : public juce::Component
+class EnvelopeDial : public ModTargetSlider
 {
 public:
-    EnvelopeDial(EnvSliderType t, int index) : label(&slider, " "), type(t), srcIndex(index)
+    EnvelopeDial(juce::DragAndDropContainer* c, EnvSliderType t, int index) : ModTargetSlider(c), type(t), srcIndex(index)
     {
-        addAndMakeVisible(&slider);
-        slider.setSliderStyle(juce::Slider::Rotary);
-        slider.setLookAndFeel(&lnf);
-        slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 1, 1);
-        addAndMakeVisible(&label);
-        double rStart, rEnd, vDefault;
         switch(type)
         {
             case DelaySlider:{
-                rStart = 0.0f; rEnd = 20000.0f; vDefault = 0.0f;
+                mTarget.setRange(0.0f, 20000.0f);
+                mTarget.setValue(0.0f);
+                mTarget.setSkewFactorFromMidPoint(1200.0f);
+                mTarget.desc = "delaySlider";
                 break;
             }
             case AttackSlider:{
-                rStart = 0.0f; rEnd = 20000.0f; vDefault = 25.0f;
+                mTarget.setRange(0.0f, 20000.0f);
+                mTarget.setValue(25.0f);
+                mTarget.setSkewFactorFromMidPoint(1200.0f);
+                mTarget.desc = "attackSlider";
                 break;
             }
             case HoldSlider:{
-                rStart = 0.0f; rEnd = 20000.0f; vDefault = 0.0f;
+                mTarget.setRange(0.0f, 20000.0f);
+                mTarget.setValue(0.0f);
+                mTarget.setSkewFactorFromMidPoint(1200.0f);
+                mTarget.desc = "holdSlider";
                 break;
             }
             case DecaySlider:{
-                rStart = 0.0f; rEnd = 20000.0f; vDefault = 100.0f;
+                mTarget.setRange(0.0f, 20000.0f);
+                mTarget.setValue(75.0f);
+                mTarget.setSkewFactorFromMidPoint(1200.0f);
+                mTarget.desc = "decaySlider";
                 break;
             }
             case SustainSlider:{
-                rStart = 0.0f; rEnd = 1.0f; vDefault = 0.6f;
+                mTarget.setRange(0.0f, 1.0f);
+                mTarget.setValue(0.6f);
+                mTarget.desc = "sustainSlider";
                 break;
             }
             case ReleaseSlider:{
-                rStart = 0.0f; rEnd = 20000.0f; vDefault = 150.0f;
+                mTarget.setRange(0.0f, 20000.0f);
+                mTarget.setValue(100.0f);
+                mTarget.setSkewFactorFromMidPoint(1200.0f);
+                mTarget.desc = "releaseSlider";
                 break;
             }
         }
-        slider.setRange(rStart, rEnd);
-        slider.setValue(vDefault);
+        mTarget.desc += std::to_string(srcIndex);
     }
-    void resized() override //note: this component should always be drawn with a 3:4 aspect ratio
-    {
-        auto n = getHeight() / 4;
-        slider.setBounds(0, 0, 3 * n, 3 * n);
-        label.setBounds(0, 3 * n, 3 * n, n);
-    }
-private:
-    SynthSourceLookAndFeel lnf;
-    juce::Slider slider;
-    EnvelopeLabel label;
     EnvSliderType type;
     int srcIndex;
 };

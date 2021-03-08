@@ -26,10 +26,7 @@ public:
     void resized() override;
     
 private:
-    
-    juce::Slider freqSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
-    EnvelopeDial dial;
+    DummyContainer container;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     WavetableSynthesizerAudioProcessor& audioProcessor;

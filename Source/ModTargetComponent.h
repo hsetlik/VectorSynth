@@ -83,6 +83,79 @@ private:
     ModSourceComponent* newSource;
 };
 
+class ModDropSlider : public juce::Slider, public juce::DragAndDropTarget //note:: this base class has to be public
+{
+public:
+    ModDropSlider(juce::DragAndDropContainer* p, juce::Button::Listener* l,
+                  std::string d = "defaultDesc",
+                  double min = 0.0f,
+                  double max = 20.0f,
+                  double def = 10.0f)
+    : parentContainer(p), desc(d)
+    {
+        setSliderStyle(juce::Slider::Rotary);
+        setTextBoxStyle(juce::Slider::NoTextBox, true, 1, 1);
+        setRange(min, max);
+        setValue(10.0f);
+        setLookAndFeel(&lnf);
+        addAndMakeVisible(hiddenButton);
+        hiddenButton.setButtonText("hidden");
+        hiddenButton.addListener(l);
+        hiddenButton.setVisible(false);
+        allColors.add(Color::RGBColor(52, 77, 96), "destDefault");
+        centerColor = allColors.getByDesc("destDefault");
+        allColors.add(Color::RGBColor(169, 179, 193), "paleBkg");
+        allColors.add(Color::RGBColor(37, 49, 53), "darkRim");
+        rimColor = allColors.getByDesc("paleBkg");
+    }
+    ~ModDropSlider() {setLookAndFeel(nullptr);}
+    void itemDropped(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
+    {
+        ModSourceComponent* sourceComp;
+        if((sourceComp = dynamic_cast<ModSourceComponent*>(dragSourceDetails.sourceComponent.get())))
+        {
+            newSource = sourceComp;
+            hiddenButton.triggerClick();
+        }
+    }
+    void setColor(const char* d)
+    {
+        centerColor = allColors.getByDesc(d);
+    }
+    void setColor(juce::String& d)
+    {
+        centerColor = allColors.getByDesc(d);
+    }
+    ModSourceComponent* getNewSource() {return newSource;}
+    void itemDragEnter(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
+    {
+        
+    }
+    void itemDragExit(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
+    {
+        
+    }
+    void itemDragMove(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
+    {
+    }
+    bool isInterestedInDragSource(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
+    {
+        return true;
+    }
+    bool shouldDrawDragImageWhenOver() override
+    {
+        return false;
+    }
+    std::string desc;
+protected:
+    SynthSourceLookAndFeel lnf;
+    juce::Colour rimColor;
+    juce::Colour centerColor;
+    juce::TextButton hiddenButton;
+    juce::DragAndDropContainer* parentContainer;
+    ModSourceComponent* newSource;
+};
+
 class SelectorButton : public juce::ShapeButton
 {
 public:
@@ -158,7 +231,7 @@ private:
 
 
 
-class ModTargetComponent : public juce::Component, juce::Button::Listener
+class ModTargetComponent : public juce::Component, public juce::Button::Listener
 {
 public:
     ModTargetComponent(juce::DragAndDropContainer* c);
@@ -167,7 +240,7 @@ public:
     void resized() override;
     void paint(juce::Graphics& g) override;
     int numSources;
-    ModDropTarget target;
+    ModDropTarget mTarget;
 private:
     juce::StringArray allSources;
     SourceButtonGroup* selectedGroup;
@@ -177,3 +250,23 @@ private:
     juce::DragAndDropContainer* container;
     ColorSet targetColors;
 };
+
+class ModTargetSlider : public juce::Component, public juce::Button::Listener
+{
+public:
+    ModTargetSlider(juce::DragAndDropContainer* c);
+    ~ModTargetSlider() {}
+    void buttonClicked(juce::Button* b) override;
+    void resized() override;
+    int numSources;
+    ModDropSlider mTarget;
+private:
+    juce::StringArray allSources;
+    SourceButtonGroup* selectedGroup;
+    DepthSlider* selectedSlider;
+    juce::OwnedArray<SourceButtonGroup> sources;
+    juce::OwnedArray<DepthSlider> sliders;
+    juce::DragAndDropContainer* container;
+    ColorSet targetColors;
+};
+
