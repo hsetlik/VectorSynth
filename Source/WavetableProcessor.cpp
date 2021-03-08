@@ -57,15 +57,14 @@ void fft(int N, double *ar, double *ai)
         }
         j += k;
     }
-    
-    LE = 1.;
+    LE = 1.0f;
     for (L = 1; L <= M; L++) {            // stage L
         LE1 = LE;                         // (LE1 = LE/2)
         LE *= 2;                          // (LE = 2^L)
-        Ur = 1.0;
-        Ui = 0.;
+        Ur = 1.0f;
+        Ui = 0.0f;
         Wr = cos(M_PI/(float)LE1);
-        Wi = -sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here
+        Wi = sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here //Nigel Redmon used -sin, I switched for a bit better sound
         for (j = 1; j <= LE1; j++)
         {
             for (i = j; i <= N; i += LE)
@@ -119,19 +118,19 @@ int WToscillator::createTables(double *waveReal, double *waveImag, int numSample
     waveReal[numSamples >> 1] = waveImag[numSamples >> 1] = 0.0f;
     // determine maxHarmonic, the highest non-zero harmonic in the wave
     int maxHarmonic = numSamples >> 1;
-    const double minVal = 0.000001f; // -120 dB
+    const double minVal = 0.000001f;
     while((fabs(waveReal[maxHarmonic]) + fabs(waveImag[maxHarmonic]) < minVal) && maxHarmonic)
         --maxHarmonic;
     double topFreq = (double)(2.0f / 3.0f / maxHarmonic); //note:: topFreq is in units of phase fraction per sample, not Hz
     double *ar = new double [numSamples];
     double *ai = new double [numSamples];
-    double scale = 0.0;
+    double scale = 0.0f;
     int numTables = 0;
     while (maxHarmonic) // cut the harmonics in half until the max is <= 0
     {
         // fill the table in with the needed harmonics
         for (idx = 0; idx < numSamples; idx++)
-            ar[idx] = ai[idx] = 0.0;
+            ar[idx] = ai[idx] = 0.0f;
         for (idx = 1; idx <= maxHarmonic; idx++)
         {
             ar[idx] = waveReal[idx];
@@ -147,6 +146,8 @@ int WToscillator::createTables(double *waveReal, double *waveImag, int numSample
         topFreq *= 2.0f;
         maxHarmonic >>= 1;
     }
+    delete [] ar;
+    delete [] ai;
     return numTables;
 }
 float WToscillator::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
@@ -156,22 +157,23 @@ float WToscillator::makeTable(double *waveReal, double *waveImag, int numSamples
     {
         tables.add(new WaveTable(numSamples, topFreq, waveImag));
         fft(numSamples, waveReal, waveImag);
-        if (scale == 0.0)
+        if (scale == 0.0f)
         {
             // get maximum value to scale to -1 - 1
-            double max = 0;
+            double max = 0.0f;
             for (int idx = 0; idx < numSamples; idx++)
             {
                 double temp = fabs(waveImag[idx]);
                 if (max < temp)
                     max = temp;
             }
-            scale = 1.0 / max * .999;
+            scale = 1.0f / max * 0.999f;
         }
         for(int i = 0; i < numSamples; ++i)
         {
             tables.getLast()->table[i] = waveImag[i] * scale;
         }
+        printf("Table: %d is at scale %f\n", tablesAdded, scale);
         ++tablesAdded;
     }
     return (float)scale;

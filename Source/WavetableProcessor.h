@@ -18,15 +18,15 @@ struct WaveTable
 {
     WaveTable(int size, double freq, double* input) : maxFreq(freq), length(size)
     {
-        table = new double[length];
         for(int i = 0; i < length; ++i)
         {
             table[i] = input[i];
         }
     }
+    
     double maxFreq; //max frequency this table can use before aliasing
     int length; //number of samples
-    double* table; //c-array of samples
+    std::array<double, TABLESIZE> table;
 };
 
 class WToscillator
