@@ -78,5 +78,7 @@ void AudioWavetableHandler::oscFromFile(WavetableOsc* osc, juce::String fileName
         buffer.clear();
         currentSample += TABLESIZE;
         printf("Loaded Table %d from sample %ld\n", i, currentSample);
+        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     }
+    delete reader;
 }

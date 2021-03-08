@@ -14,20 +14,34 @@
 class DummyContainer : public juce::DragAndDropContainer, public juce::Component
 {
 public:
-    DummyContainer() : panel(this)
+    DummyContainer(juce::AudioProcessorValueTreeState* t)
     {
-        addAndMakeVisible(&panel);
+        slider1.setRange(20.0f, 20000.0f);
+        slider1.setValue(150.0f);
+        slider1.setSliderStyle(juce::Slider::Rotary);
+        slider2.setRange(0.0f, 1.0f);
+        slider2.setValue(0.0f);
+        slider2.setSliderStyle(juce::Slider::Rotary);
         
+        addAndMakeVisible(&slider1);
+        addAndMakeVisible(&slider2);
+        attachment1.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "frequency", slider1));
+        attachment2.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "wavetablePos", slider2));
     }
     ~DummyContainer() {}
     void resized() override
     {
-        panel.setBounds(0, 0, getWidth(), getHeight());
+        auto n = getWidth() / 2;
+        slider1.setBounds(0, 0, n, n);
+        slider2.setBounds(n, 0, n, n);
     }
     void paint(juce::Graphics& g) override
     {
         
     }
 private:
-    DAHDSRPanel panel;
+    juce::Slider slider1;
+    juce::Slider slider2;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment1;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment2;
 };

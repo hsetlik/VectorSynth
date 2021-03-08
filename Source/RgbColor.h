@@ -75,13 +75,34 @@ struct ColorSet {
     
     juce::Colour getByDesc(const char* s)
     {
-        auto d = juce::String(s);
         for(auto i : colors)
         {
-            if(i.desc == d)
+            if(i.desc.toRawUTF8() == s)
                 return i.color;
         }
         return juce::Colours::black;
+    }
+    
+    juce::Colour getByDesc(std::string s)
+    {
+        for(auto i : colors)
+        {
+            if(i.desc.toStdString() == s)
+                return i.color;
+        }
+        return juce::Colours::black;
+    }
+    juce::Colour atIndex(int index)
+    {
+        return colors[index].color;
+    }
+    void set(int index, juce::Colour col)
+    {
+        colors[index].color = col;
+    }
+    void clear()
+    {
+        colors.clear();
     }
 };
 
@@ -171,6 +192,27 @@ struct Color
                 fSat = 0.15f + (0.12 * i);
            set.add(juce::Colour(fHue, fSat, (fLgt - (i * increment)), 1.0f), prefix + "ColorL" + juce::String(i));
         }
+        return set;
+    }
+    static ColorSet shadesBetween(juce::Colour a, juce::Colour b, int numShades)
+    {
+        ColorSet set;
+        set.add(a, "gradientStart");
+        auto startR = a.getFloatRed();
+        auto dR = (b.getFloatRed() - a.getFloatRed()) / numShades;
+        auto startG = a.getFloatGreen();
+        auto dG = (b.getFloatGreen() - a.getFloatGreen()) / numShades;
+        auto startB = a.getFloatBlue();
+        auto dB = (b.getFloatBlue() - a.getFloatBlue());
+        for(int i = 1; i < (numShades - 1); ++i)
+        {
+            int iR = startR + (dR * i);
+            int iG = startG + (dG * i);
+            int iB = startB + (dB * i);
+            auto name = "gradientShade" + juce::String(i);
+            set.add(RGBColor(iR, iG, iB), name);
+        }
+        set.add(b, "gradientEnd");
         return set;
     }
 };

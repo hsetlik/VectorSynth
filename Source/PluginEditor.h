@@ -27,6 +27,7 @@ public:
     
 private:
     DummyContainer container;
+    //WavetableDisplay display;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     WavetableSynthesizerAudioProcessor& audioProcessor;

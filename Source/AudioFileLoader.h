@@ -15,7 +15,7 @@ class AudioWavetableHandler
 {
 public:
     AudioWavetableHandler();
-    ~AudioWavetableHandler() {delete reader;}
+    ~AudioWavetableHandler() {}
     void oscFromFile(WavetableOsc* osc, juce::String); //switches out the table of an existing oscillator in place w data from a wav file
     juce::String nameAtIndex(int index)
     {

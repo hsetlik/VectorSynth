@@ -8,11 +8,20 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
+std::vector<std::vector<float>> makeDummyVector(int size)
+{
+    std::vector<std::vector<float>> output;
+    for(int i = 0; i < 6; ++i)
+    {
+        std::vector<float> v(size, 0.0f);
+        output.push_back(v);
+    }
+    return output;
+}
 
 //==============================================================================
 WavetableSynthesizerAudioProcessorEditor::WavetableSynthesizerAudioProcessorEditor (WavetableSynthesizerAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), container(&p.tree), audioProcessor (p)
 {
     this->setResizable(true, true);
     addAndMakeVisible(&container);
@@ -35,6 +44,6 @@ void WavetableSynthesizerAudioProcessorEditor::paint (juce::Graphics& g)
 
 void WavetableSynthesizerAudioProcessorEditor::resized()
 {
-    container.setBounds(0, 0, getWidth(), getHeight());
     
+    container.setBounds(0, 0, getWidth(), getHeight());
 }

@@ -91,7 +91,7 @@ public:
                   double min = 0.0f,
                   double max = 20.0f,
                   double def = 10.0f)
-    : parentContainer(p), desc(d)
+    :  desc(d), parentContainer(p)
     {
         setSliderStyle(juce::Slider::Rotary);
         setTextBoxStyle(juce::Slider::NoTextBox, true, 1, 1);
@@ -127,6 +127,10 @@ public:
         centerColor = allColors.getByDesc(d);
     }
     ModSourceComponent* getNewSource() {return newSource;}
+    void attach(juce::AudioProcessorValueTreeState* t)
+    {
+        attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, desc, *this));
+    }
     void itemDragEnter(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
     {
         
@@ -146,8 +150,10 @@ public:
     {
         return false;
     }
+    void setDesc(std::string d) {desc = d;}
     std::string desc;
 protected:
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
     SynthSourceLookAndFeel lnf;
     juce::Colour rimColor;
     juce::Colour centerColor;
@@ -254,8 +260,28 @@ private:
 class ModTargetSlider : public juce::Component, public juce::Button::Listener
 {
 public:
-    ModTargetSlider(juce::DragAndDropContainer* c);
+    ModTargetSlider(juce::DragAndDropContainer* c,
+                    std::string d = "defaultDesc",
+                    double min = 0.0f,
+                    double max = 20.0f,
+                    double def = 10.0f);
     ~ModTargetSlider() {}
+    void setDesc(std::string d)
+    {
+        mTarget.setDesc(d);
+    }
+    void setRange(double min, double max)
+    {
+        mTarget.setRange(min, max);
+    }
+    void setVal(double value)
+    {
+        mTarget.setValue(value);
+    }
+    void attach(juce::AudioProcessorValueTreeState* t)
+    {
+        mTarget.attach(t);
+    }
     void buttonClicked(juce::Button* b) override;
     void resized() override;
     int numSources;

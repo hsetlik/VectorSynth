@@ -13,6 +13,7 @@
 #include "SliderTypes.h"
 #include "DragDropContainer.h"
 #include "AudioFileLoader.h"
+#include "WavetableComponent.h"
 //==============================================================================
 /**
 */
@@ -56,9 +57,10 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     juce::AudioProcessorValueTreeState tree;
-private:
     WavetableOsc osc;
+private:
     double frequency;
+    float wtPos;
     AudioWavetableHandler tableHandler;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthesizerAudioProcessor)

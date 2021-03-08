@@ -42,10 +42,11 @@ public:
     float makeTable(double* waveReal, double* waveImag, int numSamples, double scale, double topFreq);
     float getSample(double frequency);
     WaveTable* tableForFreq(double frequency);
+    std::vector<float> getBasicVector(int resolution);
 private:
     int tablesAdded;
     std::vector<float> data; //the initial input data from which all the tables are made
-    juce::OwnedArray<WaveTable> tables; //array of tables
+    juce::OwnedArray<WaveTable, juce::CriticalSection> tables; //array of tables
     float position;
     float posDelta;
     float output;
@@ -75,8 +76,9 @@ public:
         if(!frameInterp)
             framePos = floor(index);
     }
+    std::vector<std::vector<float>> getFrameVectors(int resolution);
     const int MAX_FRAMES = 256;
-    juce::OwnedArray<WTframe> frames;
+    juce::OwnedArray<WTframe, juce::CriticalSection> frames;
     int numFrames;
 private:
     bool frameInterp; //determines whether the oscillator should interpolate between frames or only take values directly from one frame

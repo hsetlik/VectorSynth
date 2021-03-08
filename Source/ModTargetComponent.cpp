@@ -224,14 +224,19 @@ void ModTargetComponent::paint(juce::Graphics &g)
 
 }
 
-
-ModTargetSlider::ModTargetSlider(juce::DragAndDropContainer* c) : numSources(0), mTarget(c, this), container(c)
+ModTargetSlider::ModTargetSlider(juce::DragAndDropContainer* c,
+                std::string d,
+                double min,
+                double max,
+                double def) :
+numSources(0),
+mTarget(c, this, d, min, max, def),
+container(c)
 {
     setInterceptsMouseClicks(true, true);
     selectedGroup = nullptr;
     selectedSlider = nullptr;
     addAndMakeVisible(&mTarget);
-    //addMouseListener(this, true);
     mTarget.toFront(true);
     targetColors.add(Color::monochromeFrom(Color::RGBColor(169, 179, 193)));
 }
