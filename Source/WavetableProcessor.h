@@ -87,7 +87,7 @@ public:
         for(auto& i : frames)
             i->setSampleRate(sampleRate);
     }
-    void setPosition(float p) {position = p;} //note:: position must always be between 0 and 1
+    void setPosition(float p) {position = p;}
     float getSample(double freq)
     {
         if(numFrames < 2)
@@ -104,6 +104,7 @@ public:
         }
         return output;
     }
+    std::vector<std::vector<float>> getDataToGraph(int resolution);
 private:
     int lowerIndex;
     int upperIndex;

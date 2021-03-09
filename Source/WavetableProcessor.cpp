@@ -214,6 +214,18 @@ float WavetableFrame::getSample(double frequency)
     return output;
 }
 
+std::vector<float> WavetableFrame::getBasicVector(int resolution)
+{
+    std::vector<float> out;
+    auto inc = floor(TABLESIZE / resolution);
+    for(int sample = 0; sample < resolution; ++sample)
+    {
+        auto f = (float)tables[0]->table[inc * sample]; //for purposes of graphing, always use the first table with the most harmonic detail
+        out.push_back(f);
+    }
+    return out;
+}
+
 WavetableOsc::WavetableOsc(juce::File wavData)
 {
     sampleRate = 44100.0f;
@@ -245,4 +257,14 @@ WavetableOsc::WavetableOsc(juce::File wavData)
         reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     }
     delete reader;
+}
+
+std::vector<std::vector<float>> WavetableOsc::getDataToGraph(int resolution)
+{
+    std::vector<std::vector<float>> out;
+    for(int frame = 0; frame < numFrames; ++frame)
+    {
+        out.push_back(frames[frame]->getBasicVector(resolution));
+    }
+    return out;
 }

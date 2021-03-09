@@ -9,29 +9,13 @@
 */
 
 #include "WavetableComponent.h"
-WavetableDisplay::WavetableDisplay(std::vector<std::vector<float>> data, float pos) :
+WavetableDisplay::WavetableDisplay(std::vector<std::vector<float>> data, juce::Slider* s, float pos) :
 valueSet(data),
 position(pos),
 highlight(Color::RGBColor(255, 236, 95))
 {
+    s->addListener(this);
     background = Color::RGBColor(53, 62, 68);
-    numTraces = 0;
-    resolution = 128;
-    for(auto d : valueSet)
-    {
-        ++numTraces;
-        traces.add(new juce::Path());
-    }
-    colors.add(Color::shadesBetween(Color::RGBColor(199, 200, 202), Color::RGBColor(37, 49, 53), numTraces));
-}
-
-void WavetableDisplay::reinit(std::vector<std::vector<float> > data, float pos)
-{
-    position = pos;
-    valueSet.clear();
-    valueSet = data;
-    traces.clear();
-    colors.clear();
     numTraces = 0;
     resolution = 128;
     for(auto d : valueSet)
