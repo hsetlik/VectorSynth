@@ -88,29 +88,31 @@ public:
     void setPosition(float p) {position = p;} //note:: position must always be between 0 and 1
     float getSample(double freq)
     {
-        skew = std::fmod((position * numFrames), 1.0f);
         if(numFrames < 2)
-            return frames[0]->getSample(freq);
+            output = frames[0]->getSample(freq);
         else
         {
-            lowerIndex = floor(position * (float)(numFrames - 1));
-            upperIndex = ceil(position * (float)(numFrames - 1));
+            pFrame = position * (numFrames - 1);
+            skew = pFrame - floor(pFrame);
+            lowerIndex = floor(pFrame);
+            upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
             bSample = frames[lowerIndex]->getSample(freq);
-            if(lowerIndex == upperIndex)
-                return bSample;
             tSample = frames[upperIndex]->getSample(freq);
-            return bSample + ((tSample - bSample) * skew);
+            output = bSample + ((tSample - bSample) * skew);
         }
+        return output;
     }
 private:
     int lowerIndex;
     int upperIndex;
     float position;
+    float pFrame;
     int numFrames;
     float skew;
     float offset;
     float tSample;
     float bSample;
+    float output;
     double sampleRate;
     juce::OwnedArray<WavetableFrame, juce::CriticalSection> frames;
 };

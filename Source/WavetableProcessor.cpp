@@ -64,7 +64,7 @@ void fft(int N, double *ar, double *ai)
         Ur = 1.0f;
         Ui = 0.0f;
         Wr = cos(M_PI/(float)LE1);
-        Wi = sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here //Nigel Redmon used -sin, I switched for a bit better sound
+        Wi = -sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here //Nigel Redmon used -sin, I switched for a bit better sound
         for (j = 1; j <= LE1; j++)
         {
             for (i = j; i <= N; i += LE)
@@ -175,7 +175,7 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
         {
             tables.getLast()->table[i] = waveImag[i] * scale;
         }
-        printf("Table #%d is at scale: %f\n", tablesAdded, scale);
+        printf("Table #%d scale: %f\n", tablesAdded, scale);
         ++tablesAdded;
     }
     return (float)scale;
