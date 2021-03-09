@@ -25,10 +25,11 @@ public:
     void alterFor3d(juce::Path* p, float index)
     {
         auto fBounds = getBounds().toFloat();
-        auto dX = fBounds.getWidth() / numTraces / 6;
-        auto dY = fBounds.getHeight() / numTraces / 6;
-        auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (fBounds.getWidth() / 5), -(dY * index * 0.7f) +  (fBounds.getHeight() / 5)));
+        auto dX = fBounds.getWidth() / numTraces / 4;
+        auto dY = fBounds.getHeight() / numTraces / 4;
+        auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (fBounds.getWidth() / 8), -(dY * index * 0.7f) +  (fBounds.getHeight() / 5)));
         p->applyTransform(t);
+        
     }
     void mouseDown(const juce::MouseEvent &m) override
     {

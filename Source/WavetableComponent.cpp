@@ -17,7 +17,7 @@ highlight(Color::RGBColor(255, 236, 95)),
 currentValues(128, 0.0f)
 {
     s->addListener(this);
-    background = Color::RGBColor(53, 62, 68);
+    background = juce::Colours::black.brighter(0.1f);
     numTraces = 0;
     resolution = 128;
     for(auto d : valueSet)
@@ -37,13 +37,14 @@ void WavetableDisplay::setPosition(float pos)
     auto& upperData = valueSet[upperIdx];
     auto& lowerData = valueSet[lowerIdx];
     auto skew = (position * (numTraces - 1) * 0.99f) - (float)lowerIdx;
-    workingColors.set(lowerIdx, highlight);
-    auto aExp = 0.45f;
+    auto aExp = 0.65f;
+    auto tColorA = highlight.withBrightness(highlight.getBrightness() / 8).withSaturation(highlight.getSaturation() / 6);
+    auto tColorB = highlight.withBrightness(highlight.getBrightness() * 0.8f);
     for(int i = 0; i < numTraces; ++i)
     {
         auto diff = fabs(i - (position * (numTraces - 1)));
         auto alpha = 1.0f * pow(aExp, diff);
-        auto col = Color::blend(highlight, Color::RGBColor(37, 49, 53), alpha).withSaturation(1.0f - (1.0f - alpha));
+        auto col = Color::blendHSB(tColorA, tColorB, alpha);
         workingColors.set(i, col);
     }
     for(int i = 0; i < resolution; ++i)
@@ -55,7 +56,6 @@ void WavetableDisplay::setPosition(float pos)
 void WavetableDisplay::paint(juce::Graphics &g)
 {
     int lowerIdx = floor(position * (numTraces - 1) * 0.99f);
-    setPosition(position);
     auto strokeType = juce::PathStrokeType(2.0f);
     g.fillAll(background);
     auto fBounds = getBounds().toFloat();
@@ -110,6 +110,7 @@ void WavetableDisplay::paint(juce::Graphics &g)
             }
             current.lineTo(fBounds.getRight(), fBounds.getBottom());
             current.closeSubPath();
+            current.applyTransform(current.getTransformToScaleToFit(fBounds.reduced(20.0f), true));
             g.setColour(highlight);
             g.strokePath(current, strokeType);
         }

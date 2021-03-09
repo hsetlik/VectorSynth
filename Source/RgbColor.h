@@ -115,33 +115,21 @@ struct Color
         return(juce::Colour(juce::uint8(r), juce::uint8(g), juce::uint8(b), juce::uint8(a)));
     }
     
-    static juce::Colour blend(juce::Colour colorA, juce::Colour colorB, float ratio)
+    static juce::Colour blendRGB(juce::Colour colorA, juce::Colour colorB, float ratio)
     {
-        auto fRedA = colorA.getFloatRed();
-        auto fGreenA = colorA.getFloatGreen();
-        auto fBlueA = colorA.getFloatBlue();
-        
-        auto fRedB = colorB.getFloatRed();
-        auto fGreenB = colorB.getFloatGreen();
-        auto fBlueB = colorB.getFloatBlue();
-        
-        auto adjRedA = fRedA * (1.0f - ratio);
-        auto adjGreenA = fGreenA * (1.0f - ratio);
-        auto adjBlueA = fBlueA * (1.0f - ratio);
-        
-        auto adjRedB = fRedB * ratio;
-        auto adjGreenB = fGreenB * ratio;
-        auto adjBlueB = fBlueB * ratio;
-        
-        auto mixRed = (adjRedA + adjRedB) / 2.0f;
-        auto mixGreen = (adjGreenA + adjGreenB) / 2.0f;
-        auto mixBlue = (adjBlueA + adjBlueB) / 2.0f;
-        
-        int iRed = floor(mixRed * 255);
-        int iGreen = floor(mixGreen * 255);
-        int iBlue = floor(mixBlue * 255);
-        
-        return RGBColor(iRed, iGreen, iBlue);
+        auto fRed = lerp(colorA.getFloatRed(), colorB.getFloatRed(), ratio);
+        auto fGreen = lerp(colorA.getFloatGreen(), colorB.getFloatGreen(), ratio);
+        auto fBlue = lerp(colorA.getFloatBlue(), colorB.getFloatBlue(), ratio);
+        auto fAlpha = lerp(colorA.getFloatAlpha(), colorB.getFloatAlpha(), ratio);
+        return juce::Colour(fRed, fGreen, fBlue, fAlpha);
+    }
+    static juce::Colour blendHSB(juce::Colour a, juce::Colour b, float ratio)
+    {
+        auto fHue = lerp(a.getHue(), b.getHue(), ratio);
+        auto fSat = lerp(a.getSaturation(), b.getSaturation(), ratio);
+        auto fBrt = lerp(a.getBrightness(), b.getBrightness(), ratio);
+        auto fAlpha = lerp(a.getFloatAlpha(), b.getFloatAlpha(), ratio);
+        return juce::Colour(fHue, fSat, fBrt, fAlpha);
     }
     
     static juce::Colour complement(juce::Colour start)
@@ -149,7 +137,6 @@ struct Color
         auto fHue = start.getHue();
         auto fSat = start.getSaturationHSL();
         auto fLgt = start.getLightness();
-        
         auto dHueStart = fabs(1.0f - fHue);
         return juce::Colour(dHueStart, fSat, fLgt, 1.0f);
     }
@@ -216,5 +203,14 @@ struct Color
         }
         set.add(b, "gradientEnd");
         return set;
+    }
+private:
+    static int lerp(int a, int b, float ratio)
+    {
+        return (a * (1.0f - ratio)) + (b * ratio);
+    }
+    static float lerp(float a, float b, float ratio)
+    {
+        return (a * (1.0f - ratio)) + (b * ratio);
     }
 };
