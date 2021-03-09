@@ -12,6 +12,7 @@
 #include <JuceHeader.h>
 #include "RgbColor.h"
 #include "WavetableProcessor.h"
+#include "EnvelopeComponent.h"
 
 class WavetableDisplay : public juce::Component, public juce::Slider::Listener
 {
@@ -21,7 +22,22 @@ public:
     void paint(juce::Graphics& g) override;
     void setPosition(float pos); //recalculate colors in here;
     void sliderValueChanged(juce::Slider* s) override;
+    void alterFor3d(juce::Path* p, float index)
+    {
+        auto fBounds = getBounds().toFloat();
+        auto dX = fBounds.getWidth() / numTraces / 6;
+        auto dY = fBounds.getHeight() / numTraces / 6;
+        auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (fBounds.getWidth() / 5), -(dY * index * 0.7f) +  (fBounds.getHeight() / 5)));
+        p->applyTransform(t);
+    }
+    void mouseDown(const juce::MouseEvent &m) override
+    {
+        fake3d = !fake3d;
+        setPosition(position);
+        repaint();
+    }
 private:
+    bool fake3d;
     int resolution;
     int numTraces;
     std::vector<std::vector<float>> valueSet;
@@ -33,3 +49,13 @@ private:
     ColorSet workingColors;
     std::vector<float> currentValues;
 };
+
+class SoundSourcePanel : public juce::Component
+{
+public:
+    SoundSourcePanel(juce::DragAndDropContainer* c);
+private:
+    
+};
+
+

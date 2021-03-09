@@ -135,3 +135,14 @@ public:
     EnvSliderType type;
     int srcIndex;
 };
+
+class TablePositionSlider : public ModTargetSlider
+{
+public:
+    TablePositionSlider(juce::DragAndDropContainer* c, int index) : ModTargetSlider(c), srcIndex(index)
+    {
+        mTarget.desc = "positionSlider" + std::to_string(index);
+    }
+private:
+    int srcIndex;
+};
