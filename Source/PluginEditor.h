@@ -28,7 +28,9 @@ public:
 private:
     
     juce::Slider freqSlider;
+    juce::Slider posSlider;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     WavetableSynthesizerAudioProcessor& audioProcessor;

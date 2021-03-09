@@ -14,6 +14,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout makeLayout()
     juce::NormalisableRange<float> freqRange(20.0f, 20000.0f, 20.0f, 0.5f);
     freqRange.setSkewForCentre(1500.0f);
     layout.add(std::make_unique<juce::AudioParameterFloat>("frequency", "Frequency", freqRange, 20.0f));
+    juce::NormalisableRange<float> posRange(0.0f, 1.0f);
+    layout.add(std::make_unique<juce::AudioParameterFloat>("wavetablePos", "Table Position", posRange, 0.2f));
+    
     return layout;
 }
 
@@ -30,7 +33,8 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                        ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(saw512)
 #endif
 {
-    
+    osc.addFrame(series3Square512);
+    osc.addFrame(triangle512);
 }
 
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()
@@ -143,6 +147,8 @@ void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>&
 {
     buffer.clear();
     frequency = (double)*tree.getRawParameterValue("frequency");
+    position = *tree.getRawParameterValue("wavetablePos");
+    osc.setPosition(position);
         for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
             auto _sample = osc.getSample(frequency);

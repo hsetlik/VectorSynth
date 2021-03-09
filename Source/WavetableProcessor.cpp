@@ -84,7 +84,7 @@ void fft(int N, double *ar, double *ai)
     }
 }
 
-WToscillator::WToscillator(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
+WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
 {
     //Step 1: create a full size vector by linear interpolating the input data
     std::vector<float> fullInput(TABLESIZE, 0.0f);
@@ -108,9 +108,11 @@ WToscillator::WToscillator(std::vector<float> t) : tablesAdded(0), data(t), posi
     //FFT time!!
     fft(TABLESIZE, freqWaveReal, freqWaveImag);
     createTables(freqWaveReal, freqWaveImag, TABLESIZE);
+    delete [] freqWaveReal;
+    delete [] freqWaveImag;
 }
 
-int WToscillator::createTables(double *waveReal, double *waveImag, int numSamples)
+int WavetableFrame::createTables(double *waveReal, double *waveImag, int numSamples)
 {
     int idx;
     // zero DC offset and Nyquist (set first and last samples of each array to zero, in other words)
@@ -150,7 +152,7 @@ int WToscillator::createTables(double *waveReal, double *waveImag, int numSample
     delete [] ai;
     return numTables;
 }
-float WToscillator::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
+float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
 {
     printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
     if(tablesAdded <= NUMTABLES)
@@ -173,13 +175,13 @@ float WToscillator::makeTable(double *waveReal, double *waveImag, int numSamples
         {
             tables.getLast()->table[i] = waveImag[i] * scale;
         }
-        printf("Table: %d is at scale %f\n", tablesAdded, scale);
+        printf("Table #%d is at scale: %f\n", tablesAdded, scale);
         ++tablesAdded;
     }
     return (float)scale;
 }
 
-WaveTable* WToscillator::tableForFreq(double frequency)
+WaveTable* WavetableFrame::tableForFreq(double frequency)
 {
     auto* out = tables[0];
     for(int i = 0; i < tablesAdded; ++i)
@@ -192,7 +194,7 @@ WaveTable* WToscillator::tableForFreq(double frequency)
     return out;
 }
 
-float WToscillator::getSample(double frequency)
+float WavetableFrame::getSample(double frequency)
 {
     posDelta = (float)(frequency / sampleRate);
     auto table = tableForFreq(posDelta);
@@ -204,8 +206,6 @@ float WToscillator::getSample(double frequency)
     bottomSampleIndex = floor(table->length * position);
     skew = (table->length * position) - bottomSampleIndex;
     sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
-    if(output != 0.0f)
-        posDelta = 0.0f;
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
     return output;
 }
