@@ -12,7 +12,8 @@
 WavetableDisplay::WavetableDisplay(std::vector<std::vector<float>> data, juce::Slider* s, float pos) :
 valueSet(data),
 position(pos),
-highlight(Color::RGBColor(255, 236, 95))
+highlight(Color::RGBColor(255, 236, 95)),
+currentValues(128, 0.0f)
 {
     s->addListener(this);
     background = Color::RGBColor(53, 62, 68);
@@ -30,57 +31,65 @@ void WavetableDisplay::setPosition(float pos)
 {
     workingColors = colors;
     position = pos;
-    auto centerIndex = floor(position * numTraces);
-    workingColors.set(centerIndex, highlight);
-    auto factor = 1.0f;
-    auto exp = 0.25f;
-    if(centerIndex + 1 < numTraces)
+    auto lowerIdx = floor(position * (numTraces - 1) * 0.99f);
+    auto upperIdx = lowerIdx + 1;
+    auto& upperData = valueSet[upperIdx];
+    auto& lowerData = valueSet[lowerIdx];
+    auto skew = (position * (numTraces - 1) * 0.99f) - (float)lowerIdx;
+    workingColors.set(lowerIdx, highlight);
+    auto aExp = 0.45f;
+    auto bExp = 0.6f;
+    auto trcColor = Color::complement(highlight);
+    for(int i = 0; i < numTraces; ++i)
     {
-        for(int i = centerIndex + 1; i < numTraces; ++i)
-        {
-            factor *= exp;
-            workingColors.set(i, Color::blend(highlight, colors.atIndex(i), factor));
-        }
+        auto diff = fabs(i - (position * (numTraces - 1)));
+        auto brt = 1.0f * pow(bExp, diff);
+        auto alpha = 1.0f * pow(aExp, diff);
+        auto col = Color::desaturated(trcColor.withAlpha(alpha).withBrightness(brt), 1.0f - brt);
+        workingColors.set(i, col);
     }
-    if(centerIndex - 1 > 0)
+    for(int i = 0; i < resolution; ++i)
     {
-        factor = 1.0f;
-        for(int i = centerIndex - 1; i >= 0; --i)
-        {
-            factor *= exp;
-            workingColors.set(i, Color::blend(highlight, colors.atIndex(i), factor));
-        }
+        currentValues[i] = lowerData[i] + ((upperData[i] - lowerData[i]) * skew);
     }
 }
 
 void WavetableDisplay::paint(juce::Graphics &g)
 {
     setPosition(position);
-    auto strokeType = juce::PathStrokeType(5.0f);
+    auto strokeType = juce::PathStrokeType(2.0f);
     g.fillAll(background);
     auto fBounds = getBounds().toFloat();
     auto y0 = fBounds.getHeight() / 2.0f;
     auto amplitude = y0 * 0.75f;
-    int idx = 0;
     auto dX = fBounds.getWidth() / resolution;
-    for(auto p : traces)
+    if(numTraces >= 1)
     {
-        p->clear();
-        float xPoint = fBounds.getX();
-        float yPoint = fBounds.getBottom();
-        p->startNewSubPath(xPoint, yPoint);
-        p->lineTo(xPoint, y0);
-        for(int point = 0; point < resolution; ++point)
+        for(int p = (numTraces - 1); p >= 0; --p)
         {
-            xPoint += dX;
-            yPoint = y0 + (amplitude * valueSet[idx][point]);
-            p->lineTo(xPoint, yPoint);
+            traces[p]->clear();
+            traces[p]->startNewSubPath(0.0f, fBounds.getBottom());
+            traces[p]->lineTo(0.0f, y0);
+            for(int i = 0; i < resolution; ++i)
+            {
+                traces[p]->lineTo(dX * i, y0 + (valueSet[p][i] * amplitude));
+            }
+            traces[p]->lineTo(fBounds.getRight(), fBounds.getBottom());
+            traces[p]->closeSubPath();
+            g.setColour(workingColors.atIndex(p));
+            g.strokePath(*traces[p], strokeType);
         }
-        p->lineTo(fBounds.getRight(), fBounds.getBottom());
-        p->closeSubPath();
-        g.setColour(workingColors.atIndex(idx));
-        g.strokePath(*p, strokeType);
-        ++idx;
+        juce::Path current;
+        current.startNewSubPath(0.0f, fBounds.getBottom());
+        current.lineTo(0.0f, y0);
+        for(int i = 0; i < resolution; ++i)
+        {
+            current.lineTo(i * dX, y0 + (currentValues[i] * amplitude));
+        }
+        current.lineTo(fBounds.getRight(), fBounds.getBottom());
+        current.closeSubPath();
+        g.setColour(highlight);
+        g.strokePath(current, strokeType);
     }
 }
 

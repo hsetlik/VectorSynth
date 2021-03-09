@@ -150,11 +150,13 @@ struct Color
         auto fSat = start.getSaturationHSL();
         auto fLgt = start.getLightness();
         
-        auto dHueStart = fHue * 360.0;
-        auto hue = 360.0 - dHueStart;
-        return juce::Colour(hue, fSat, fLgt, 1.0f);
+        auto dHueStart = fabs(1.0f - fHue);
+        return juce::Colour(dHueStart, fSat, fLgt, 1.0f);
     }
-    
+    static juce::Colour desaturated(juce::Colour input, float amt)
+    {
+        return juce::Colour(input.getHue(), input.getSaturation() * amt, input.getBrightness(), input.getFloatAlpha());
+    }
     static ColorSet triadFrom(juce::Colour center)
     {
         ColorSet set;

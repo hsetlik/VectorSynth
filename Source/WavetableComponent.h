@@ -31,4 +31,5 @@ private:
     juce::Colour highlight;
     ColorSet colors;
     ColorSet workingColors;
+    std::vector<float> currentValues;
 };
