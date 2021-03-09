@@ -10,6 +10,9 @@
 
 #pragma once
 #include <JuceHeader.h>
+#include "WavetableProcessor.h"
+#include "DAHDSR.h"
+
 class WavetableSound : public juce::SynthesiserSound
 {
 public:
@@ -26,6 +29,7 @@ public:
 class WavetableVoice : public juce::SynthesiserVoice
 {
 public:
+    WavetableVoice(juce::Array<juce::File> files);
     void pitchWheelMoved(int newPitchWheelVal) {}
     //=============================================
     void controllerMoved(int controllerNumber, int controllerValue) {}
@@ -35,4 +39,5 @@ public:
     void channelPressureChanged (int newChannelPressureValue) {}
     //===============================================
     void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples);
+    double fundamental;
 };

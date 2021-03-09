@@ -14,6 +14,9 @@
 const int TABLESIZE = 2048;
 const int NUMTABLES = 32;
 const int fftOrder = 10;
+
+
+
 struct WaveTable
 {
     WaveTable(int size, double freq, double* input) : maxFreq(freq), length(size)
