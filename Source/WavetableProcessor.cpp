@@ -55,15 +55,14 @@ void fft(int N, double *ar, double *ai)
         }
         j += k;
     }
-    LE = 1.;
-    for (L = 1; L <= M; L++)
-    {            // stage L
+    LE = 1.0f;
+    for (L = 1; L <= M; L++) {            // stage L
         LE1 = LE;                         // (LE1 = LE/2)
         LE *= 2;                          // (LE = 2^L)
-        Ur = 1.0;
-        Ui = 0.;
+        Ur = 1.0f;
+        Ui = 0.0f;
         Wr = cos(M_PI/(float)LE1);
-        Wi = -sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here
+        Wi = -sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here //Nigel Redmon used -sin, I switched for a bit better sound
         for (j = 1; j <= LE1; j++)
         {
             for (i = j; i <= N; i += LE)
@@ -83,7 +82,7 @@ void fft(int N, double *ar, double *ai)
     }
 }
 
-WTframe::WTframe(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
+WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
 {
     //Step 1: create a full size vector by linear interpolating the input data
     std::vector<float> fullInput(TABLESIZE, 0.0f);
@@ -107,9 +106,11 @@ WTframe::WTframe(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f)
     //FFT time!!
     fft(TABLESIZE, freqWaveReal, freqWaveImag);
     createTables(freqWaveReal, freqWaveImag, TABLESIZE);
+    delete [] freqWaveReal;
+    delete [] freqWaveImag;
 }
 
-int WTframe::createTables(double *waveReal, double *waveImag, int numSamples)
+int WavetableFrame::createTables(double *waveReal, double *waveImag, int numSamples)
 {
     int idx;
     // zero DC offset and Nyquist (set first and last samples of each array to zero, in other words)
@@ -117,7 +118,7 @@ int WTframe::createTables(double *waveReal, double *waveImag, int numSamples)
     waveReal[numSamples >> 1] = waveImag[numSamples >> 1] = 0.0f;
     // determine maxHarmonic, the highest non-zero harmonic in the wave
     int maxHarmonic = numSamples >> 1;
-    const double minVal = 0.000001f; // -120 dB
+    const double minVal = 0.000001f;
     while((fabs(waveReal[maxHarmonic]) + fabs(waveImag[maxHarmonic]) < minVal) && maxHarmonic)
         --maxHarmonic;
     double topFreq = (double)(2.0f / 3.0f / maxHarmonic); //note:: topFreq is in units of phase fraction per sample, not Hz
@@ -145,36 +146,40 @@ int WTframe::createTables(double *waveReal, double *waveImag, int numSamples)
         topFreq *= 2.0f;
         maxHarmonic >>= 1;
     }
+    delete [] ar;
+    delete [] ai;
     return numTables;
 }
-float WTframe::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
+float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
 {
+    printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
     if(tablesAdded <= NUMTABLES)
     {
         tables.add(new WaveTable(numSamples, topFreq, waveImag));
         fft(numSamples, waveReal, waveImag);
-        if (scale == 0.0)
+        if (scale == 0.0f)
         {
-            // get maximum value to scale to -1.0, 1.0
-            double max = 0;
+            // get maximum value to scale to -1 - 1
+            double max = 0.0f;
             for (int idx = 0; idx < numSamples; idx++)
             {
                 double temp = fabs(waveImag[idx]);
                 if (max < temp)
                     max = temp;
             }
-            scale = 1.0f / max * .999f;
+            scale = 1.0f / max * 0.999f;
         }
         for(int i = 0; i < numSamples; ++i)
         {
             tables.getLast()->table[i] = waveImag[i] * scale;
         }
+        printf("Table #%d scale: %f\n", tablesAdded, scale);
         ++tablesAdded;
     }
     return (float)scale;
 }
 
-WaveTable* WTframe::tableForFreq(double frequency)
+WaveTable* WavetableFrame::tableForFreq(double frequency)
 {
     auto* out = tables[0];
     bool tableFound = false;
@@ -193,7 +198,7 @@ WaveTable* WTframe::tableForFreq(double frequency)
     return out;
 }
 
-float WTframe::getSample(double frequency)
+float WavetableFrame::getSample(double frequency)
 {
     posDelta = (float)(frequency / sampleRate);
     auto table = tableForFreq(posDelta);
@@ -204,10 +209,7 @@ float WTframe::getSample(double frequency)
     }
     bottomSampleIndex = floor(table->length * position);
     skew = (table->length * position) - bottomSampleIndex;
-    if(bottomSampleIndex + 1 == TABLESIZE)
-        sampleDiff = table->table[0] - table->table[bottomSampleIndex];
-    else
-        sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
+    sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
     return output;
 }

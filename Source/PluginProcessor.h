@@ -59,10 +59,10 @@ public:
     juce::AudioProcessorValueTreeState tree;
     WTframe osc;
 private:
-    float lastSample;
+    WavetableOsc osc;
     double frequency;
-    float wtPos;
-    AudioWavetableHandler tableHandler;
+    float position;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthesizerAudioProcessor)
 };

@@ -18,22 +18,30 @@ struct WaveTable
 {
     WaveTable(int size, double freq, double* input) : maxFreq(freq), length(size)
     {
-        table = new double[length];
+        double accum = 0.0f;
         for(int i = 0; i < length; ++i)
         {
             table[i] = input[i];
+            if(i < length / 2)
+                accum += table[i];
+        }
+        //the average sample value for the first half of the wave
+        if(accum / (double)(length / 2.0f) > 0.0f) //if the wave starts on a negative phase, invert it so they always match
+        {
+            for(auto i : table)
+                i *= -1.0f;
         }
     }
     double maxFreq; //max frequency this table can use before aliasing
     int length; //number of samples
-    double* table; //c-array of samples
+    std::array<double, TABLESIZE> table;
 };
 
-class WTframe
+class WavetableFrame
 {
 public:
-    WTframe(std::vector<float> t);
-    ~WTframe() {}
+    WavetableFrame(std::vector<float> t);
+    ~WavetableFrame() {}
     void setSampleRate(double rate)
     {
         sampleRate = rate;
@@ -59,24 +67,47 @@ private:
 class WavetableOsc
 {
 public:
-    WavetableOsc(); //default constructor just creates one frame with the saw512 table
-    WavetableOsc(std::vector<float> inData);
+    WavetableOsc(std::vector<float> firstFrameData = saw512)
+    {
+        sampleRate = 44100.0f;
+        position = 0.0f;
+        numFrames = 0;
+        addFrame(firstFrameData);
+    }
     ~WavetableOsc() {}
+    void addFrame(std::vector<float> d)
+    {
+        frames.add(new WavetableFrame(d));
+        ++numFrames;
+    }
     void setSampleRate(double newRate)
     {
-        for(auto i : frames)
-            i->setSampleRate(newRate);
+        sampleRate = newRate;
+        for(auto& i : frames)
+            i->setSampleRate(sampleRate);
     }
-    void addFrame(std::vector<float> inData);
-    void addFrame(float* input, int size);
-    float getSample(double freq);
-    void setPosition(float index)
+    void setPosition(float p) {position = p;} //note:: position must always be between 0 and 1
+    float getSample(double freq)
     {
-        framePos = (double) index * numFrames;
+        if(numFrames < 2)
+            output = frames[0]->getSample(freq);
+        else
+        {
+            pFrame = position * (numFrames - 1);
+            skew = pFrame - floor(pFrame);
+            lowerIndex = floor(pFrame);
+            upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
+            bSample = frames[lowerIndex]->getSample(freq);
+            tSample = frames[upperIndex]->getSample(freq);
+            output = bSample + ((tSample - bSample) * skew);
+        }
+        return output;
     }
-    std::vector<std::vector<float>> getFrameVectors(int resolution);
-    const int MAX_FRAMES = 256;
-    juce::OwnedArray<WTframe, juce::CriticalSection> frames;
+private:
+    int lowerIndex;
+    int upperIndex;
+    float position;
+    float pFrame;
     int numFrames;
 private:
     int topIndex, bottomIndex;
@@ -84,5 +115,11 @@ private:
     float bottomSample;
     float topSample;
     float skew;
+    float offset;
+    float tSample;
+    float bSample;
+    float output;
+    double sampleRate;
+    juce::OwnedArray<WavetableFrame, juce::CriticalSection> frames;
 };
 
