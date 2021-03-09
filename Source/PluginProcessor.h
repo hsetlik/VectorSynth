@@ -58,6 +58,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     juce::AudioProcessorValueTreeState tree;
 private:
+    AudioWavetableHandler handler;
     WavetableOsc osc;
     double frequency;
     float lastSample;

@@ -74,6 +74,7 @@ public:
         numFrames = 0;
         addFrame(firstFrameData);
     }
+    WavetableOsc(juce::File wavData);
     ~WavetableOsc() {}
     void addFrame(std::vector<float> d)
     {
@@ -109,13 +110,7 @@ private:
     float position;
     float pFrame;
     int numFrames;
-private:
-    int topIndex, bottomIndex;
-    double framePos;
-    float bottomSample;
-    float topSample;
     float skew;
-    float offset;
     float tSample;
     float bSample;
     float output;

@@ -13,7 +13,6 @@
 
 AudioWavetableHandler::AudioWavetableHandler()
 {
-    manager.registerBasicFormats();
     auto appFolder = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
     appFolder.setAsCurrentWorkingDirectory();
     audioFolder = appFolder.getChildFile("MyWavetables");
@@ -46,7 +45,7 @@ AudioWavetableHandler::AudioWavetableHandler()
         }
     }
 }
-
+/*
 void AudioWavetableHandler::oscFromFile(WavetableOsc* osc, juce::String fileName)
 {
     auto idx = tableNames.indexOf(fileName);
@@ -82,3 +81,4 @@ void AudioWavetableHandler::oscFromFile(WavetableOsc* osc, juce::String fileName
     }
     delete reader;
 }
+*/

@@ -16,16 +16,21 @@ class AudioWavetableHandler
 public:
     AudioWavetableHandler();
     ~AudioWavetableHandler() {}
-    void oscFromFile(WavetableOsc* osc, juce::String); //switches out the table of an existing oscillator in place w data from a wav file
     juce::String nameAtIndex(int index)
     {
         return tableNames[index];
     }
+    juce::File getWav(int index)
+    {
+        return wavFiles[index];
+    }
+    juce::File getWav(juce::String name)
+    {
+        return wavFiles[tableNames.indexOf(name)];
+    }
 private:
     int numFiles;
-    juce::AudioFormatReader* reader;
     juce::File audioFolder;
     juce::StringArray tableNames;
     juce::Array<juce::File> wavFiles;
-    juce::AudioFormatManager manager;
 };

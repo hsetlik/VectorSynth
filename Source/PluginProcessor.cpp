@@ -29,11 +29,10 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(saw512)
+                       ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(handler.getWav(1))
 #endif
 {
-    osc.addFrame(series3Square512);
-    osc.addFrame(triangle512);
+    
 }
 
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()
