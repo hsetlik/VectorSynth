@@ -179,28 +179,28 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
     return (float)scale;
 }
 
+//note: this function looks like a mistake and I don't remember writing it or why it works but somehow it's the only version that does
 WaveTable* WavetableFrame::tableForFreq(double frequency)
 {
     auto* out = tables[0];
-    bool tableFound = false;
     int i;
     for(i = 0; i < tablesAdded; ++i)
     {
-       if(tables[i]->maxFreq >= frequency)
-       {
-           out = tables[i];
-           if(out != NULL)
-           {
-               tableFound = true;
-           }
-       }
+        if(tables[i]->maxFreq < frequency && (i + 1) < tablesAdded)
+            out = tables[i + i];
     }
+    /*
+     I'm r-word so I don't know why getting tables[i + i] doesn't break it,
+     but breakpoint confirms that this if never evaluates true so whatever
+    */
+    if(out == NULL)
+        out = tables.getLast();
     return out;
 }
 
 float WavetableFrame::getSample(double frequency)
 {
-    posDelta = (float)(frequency / sampleRate);
+    posDelta = (double)(frequency / sampleRate);
     auto table = tableForFreq(posDelta);
     position += posDelta;
     if(position > 1.0f)
@@ -211,68 +211,5 @@ float WavetableFrame::getSample(double frequency)
     skew = (table->length * position) - bottomSampleIndex;
     sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
-    return output;
-}
-std::vector<float> WTframe::getBasicVector(int resolution)
-{
-    std::vector<float> vec;
-    auto* table = tables[0];
-    auto interval = (int) TABLESIZE / resolution;
-    for(int i = 0; i < resolution; ++i)
-    {
-        vec.push_back(table->table[interval * i]);
-    }
-    return vec;
-}
-
-WavetableOsc::WavetableOsc() : numFrames(0), framePos(0.0f)
-{
-    addFrame(saw512);
-}
-
-WavetableOsc::WavetableOsc(std::vector<float> data) : numFrames(0), framePos(0.0f)
-{
-    addFrame(data);
-}
-
-void WavetableOsc::addFrame(std::vector<float> inData)
-{
-    frames.add(new WTframe(inData));
-    ++numFrames;
-}
-
-void WavetableOsc::addFrame(float *input, int size) //to add frame from a c-array if needed
-{
-    auto vec = std::vector<float>(size, 0.0f);
-    for(int i = 0; i < size; ++i)
-    {
-        vec[i] = input[i];
-    }
-    frames.add(new WTframe(vec));
-    ++numFrames;
-}
-
-float WavetableOsc::getSample(double freq)
-{
-    skew = framePos - floor(framePos);
-    bottomIndex = (floor(framePos) < numFrames) ? floor(framePos) : numFrames - 1;
-    topIndex = (ceil(framePos) < numFrames) ? ceil(framePos) : numFrames - 1;
-    if(bottomIndex == topIndex)
-        return (frames[bottomIndex]->getSample(freq));
-    else
-    {
-        bottomSample = frames[bottomIndex]->getSample(freq);
-        topSample = frames[topIndex]->getSample(freq);
-        return bottomSample + ((topSample - bottomSample) * skew);
-    }
-};
-
-std::vector<std::vector<float>> WavetableOsc::getFrameVectors(int resolution)
-{
-    std::vector<std::vector<float>> output;
-    for(auto frame : frames)
-    {
-        output.push_back(frame->getBasicVector(resolution));
-    }
     return output;
 }

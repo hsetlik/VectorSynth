@@ -26,7 +26,7 @@ struct WaveTable
                 accum += table[i];
         }
         //the average sample value for the first half of the wave
-        if(accum / (double)(length / 2.0f) > 0.0f) //if the wave starts on a negative phase, invert it so they always match
+        if(accum / (double)(length / 2.0f) < 0.0f) //if the wave starts on a negative phase, invert it so they always match
         {
             for(auto i : table)
                 i *= -1.0f;
@@ -67,7 +67,7 @@ private:
 class WavetableOsc
 {
 public:
-    WavetableOsc(std::vector<float> firstFrameData = saw512)
+    WavetableOsc(std::vector<float> firstFrameData)
     {
         sampleRate = 44100.0f;
         position = 0.0f;
