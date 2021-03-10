@@ -139,10 +139,27 @@ public:
 class TablePositionSlider : public ModTargetSlider
 {
 public:
-    TablePositionSlider(juce::DragAndDropContainer* c, int index) : ModTargetSlider(c), srcIndex(index)
+    TablePositionSlider(juce::DragAndDropContainer* c, int index) :
+    ModTargetSlider(c, "positionSlider" + std::to_string(index), 0.0f, 1.0f, 0.0f),
+    srcIndex(index)
     {
-        mTarget.desc = "positionSlider" + std::to_string(index);
+        
     }
 private:
     int srcIndex;
 };
+
+class OscLevelSlider : public ModTargetSlider
+{
+public:
+    OscLevelSlider(juce::DragAndDropContainer* c, int index) :
+    ModTargetSlider(c, "oscLevelSlider" + std::to_string(index), 0.0f, 1.0f, 0.0f),
+    srcIndex(index)
+    {
+        
+    }
+private:
+    int srcIndex;
+};
+
+

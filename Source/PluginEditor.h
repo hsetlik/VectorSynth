@@ -26,12 +26,9 @@ public:
     void resized() override;
     
 private:
-    juce::Slider freqSlider;
-    juce::Slider posSlider;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
+    
     WavetableSynthesizerAudioProcessor& audioProcessor;
-    WavetableDisplay display;
+    DummyContainer container;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthesizerAudioProcessorEditor)
 };

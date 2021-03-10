@@ -10,7 +10,7 @@
 
 #include "WavetableComponent.h"
 WavetableDisplay::WavetableDisplay(std::vector<std::vector<float>> data, juce::Slider* s, float pos) :
-fake3d(false),
+fake3d(true),
 valueSet(data),
 position(pos),
 highlight(Color::RGBColor(255, 236, 95)),
@@ -57,8 +57,9 @@ void WavetableDisplay::paint(juce::Graphics &g)
 {
     int lowerIdx = floor(position * (numTraces - 1) * 0.99f);
     auto strokeType = juce::PathStrokeType(2.0f);
-    g.fillAll(background);
+    g.setColour(background);
     auto fBounds = getBounds().toFloat();
+    g.fillRect(fBounds.reduced(2.0f));
     auto y0 = fBounds.getHeight() / 2.0f;
     auto amplitude = y0 * 0.75f;
     auto dX = fBounds.getWidth() / resolution;
@@ -122,3 +123,29 @@ void WavetableDisplay::sliderValueChanged(juce::Slider *s)
     setPosition((float)s->getValue());
     repaint();
 }
+
+SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, std::vector<std::vector<float>> graphData, juce::AudioProcessorValueTreeState* t) :
+sPos(c, 0),
+sLevel(c, 0),
+envPanel(c),
+waveGraph(graphData, &sPos.mTarget)
+{
+    addAndMakeVisible(sPos);
+    addAndMakeVisible(sLevel);
+    addAndMakeVisible(envPanel);
+    addAndMakeVisible(waveGraph);
+    
+    freqAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "frequency", sLevel.mTarget));
+    posAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "wavetablePos", sPos.mTarget));
+}
+
+void SoundSourcePanel::resized()
+{
+    auto dX = getWidth() / 12;
+    auto dY = getHeight() / 12;
+    waveGraph.setBounds(dX / 5, dY / 5, 4.5 * dX, 4.5 * dY);
+    envPanel.setBounds(dX / 5, 5 * dY, 8 * dX, 7 * dY);
+    sLevel.setBounds(8 * dX, 2 * dY, 2.5f * dY, 2.5f * dY);
+    sPos.setBounds(8 * dX, 5 * dY, 2.5f * dY, 2.5f * dY);
+}
+

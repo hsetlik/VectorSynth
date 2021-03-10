@@ -54,8 +54,16 @@ private:
 class SoundSourcePanel : public juce::Component
 {
 public:
-    SoundSourcePanel(juce::DragAndDropContainer* c);
+    SoundSourcePanel(juce::DragAndDropContainer* c, std::vector<std::vector<float>> graphData, juce::AudioProcessorValueTreeState* t);
+    ~SoundSourcePanel() {}
+    void resized() override;
 private:
+    TablePositionSlider sPos;
+    OscLevelSlider sLevel;
+    DAHDSRPanel envPanel;
+    WavetableDisplay waveGraph;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
     
 };
 

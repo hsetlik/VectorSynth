@@ -12,7 +12,7 @@
 #include <JuceHeader.h>
 #include "RgbColor.h"
 
-class DAHDSRGraph : public juce::Component, public juce::Timer
+class DAHDSRGraph : public juce::Component, public juce::Slider::Listener
 {
 public:
     DAHDSRGraph(juce::Slider* Delay,
@@ -24,7 +24,7 @@ public:
     ~DAHDSRGraph() {}
     void grabValues();
     void paint(juce::Graphics& g) override;
-    void timerCallback() override
+    void sliderValueChanged(juce::Slider* s) override
     {
         grabValues();
         repaint();

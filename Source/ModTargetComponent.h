@@ -102,11 +102,8 @@ public:
         hiddenButton.setButtonText("hidden");
         hiddenButton.addListener(l);
         hiddenButton.setVisible(false);
-        allColors.add(Color::RGBColor(52, 77, 96), "destDefault");
-        centerColor = allColors.getByDesc("destDefault");
-        allColors.add(Color::RGBColor(169, 179, 193), "paleBkg");
-        allColors.add(Color::RGBColor(37, 49, 53), "darkRim");
-        rimColor = allColors.getByDesc("paleBkg");
+        centerColor = Color::RGBColor(52, 77, 96);
+        rimColor = Color::RGBColor(169, 179, 193);
     }
     ~ModDropSlider() {setLookAndFeel(nullptr);}
     void itemDropped(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
@@ -120,11 +117,11 @@ public:
     }
     void setColor(const char* d)
     {
-        centerColor = allColors.getByDesc(d);
+        centerColor = myColors.getByDesc(d);
     }
     void setColor(juce::String& d)
     {
-        centerColor = allColors.getByDesc(d);
+        centerColor = myColors.getByDesc(d);
     }
     ModSourceComponent* getNewSource() {return newSource;}
     void attach(juce::AudioProcessorValueTreeState* t)
@@ -153,6 +150,7 @@ public:
     void setDesc(std::string d) {desc = d;}
     std::string desc;
 protected:
+    ColorSet myColors;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment;
     SynthSourceLookAndFeel lnf;
     juce::Colour rimColor;
@@ -173,6 +171,7 @@ public:
     void paintButton(juce::Graphics& g, bool, bool) override;
 private:
     juce::Colour centerColor;
+    
 };
 
 class RemoveButton : public juce::ShapeButton
@@ -180,11 +179,12 @@ class RemoveButton : public juce::ShapeButton
 public:
     RemoveButton(int srcIndex) : juce::ShapeButton("ModRemoveButton" + juce::String(srcIndex), juce::Colours::black, juce::Colours::black, juce::Colours::black)
     {
-        allColors.add(Color::RGBColor(186, 51, 77), "SatRed");
-        allColors.add(Color::RGBColor(112, 32, 51), "DarkRed");
+        rColors.add(Color::RGBColor(186, 51, 77), "SatRed");
+        rColors.add(Color::RGBColor(112, 32, 51), "DarkRed");
     }
     ~RemoveButton() {}
     void paintButton(juce::Graphics& g, bool, bool) override;
+    ColorSet rColors;
 };
 
 class DepthSlider : public juce::Slider
@@ -227,6 +227,7 @@ public:
     void setIndex(int v) {sourceIndex = v;}
 
 private:
+    ColorSet srcColors;
     juce::Colour background;
     ModSourceComponent* sourceComp;
     int sourceIndex;
@@ -284,6 +285,10 @@ public:
     }
     void buttonClicked(juce::Button* b) override;
     void resized() override;
+    void paint(juce::Graphics& g) override
+    {
+        
+    }
     int numSources;
     ModDropSlider mTarget;
 private:

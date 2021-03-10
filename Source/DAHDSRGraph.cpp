@@ -23,15 +23,20 @@ sDecay(Decay),
 sSustain(Sustain),
 sRelease(Release)
 {
+    sDelay->addListener(this);
+    sAttack->addListener(this);
+    sHold->addListener(this);
+    sDecay->addListener(this);
+    sSustain->addListener(this);
+    sRelease->addListener(this);
     fDelay = 0.0f;
     fAttack = 20.0f;
     fHold = 0.0f;
     fDecay = 100.0f;
     fSustain = 0.6f;
     fRelease = 40.0f;
-    bgColor = Color::RGBColor(37, 50, 53);
-    traceColor = Color::RGBColor(250, 172, 63);
-    startTimerHz(24);
+    bgColor = juce::Colours::black.brighter(0.1f);
+    traceColor = Color::RGBColor(255, 236, 95);
 }
 
 void DAHDSRGraph::grabValues()
@@ -51,9 +56,10 @@ void DAHDSRGraph::grabValues()
 void DAHDSRGraph::paint(juce::Graphics &g)
 {
     
-    g.fillAll(bgColor);
+    g.setColour(bgColor);
     
-    auto area = getLocalBounds().toFloat();
+    auto area = getLocalBounds().toFloat().reduced(3.0f);
+    g.fillRect(area);
     auto timeTotal = fDelay + fAttack + fHold + fDecay + fRelease;
     juce::Path trace;
     trace.startNewSubPath(0.0f, area.getHeight());
@@ -67,9 +73,17 @@ void DAHDSRGraph::paint(juce::Graphics &g)
     trace.lineTo(fDelay + fAttack + fHold + fDecay + sustainLength, sustainY);
     trace.lineTo(timeTotal + sustainLength, area.getHeight());
     trace.closeSubPath();
-    trace.scaleToFit(0.0f, 5.0f, area.getWidth(), (area.getHeight() - 5.0f), false);
+    trace.scaleToFit(area.getX(), 5.0f, area.getWidth(), (area.getHeight() - 1.0f), false);
     
-    auto stroke = juce::PathStrokeType(1.0f);
+    auto stroke1 = juce::PathStrokeType(1.0f);
     g.setColour(traceColor);
-    g.strokePath(trace, stroke);
+    g.strokePath(trace, stroke1);
+    auto iBounds = area.reduced(1.0f);
+    g.setColour(bgColor.brighter(0.2f));
+    auto stroke2 = juce::PathStrokeType(3.0f);
+    juce::Path bottom;
+    bottom.startNewSubPath(iBounds.getX(), iBounds.getBottom());
+    bottom.lineTo(iBounds.getRight(), iBounds.getBottom());
+    bottom.closeSubPath();
+    g.strokePath(bottom, stroke2);
 }

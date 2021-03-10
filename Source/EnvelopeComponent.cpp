@@ -46,21 +46,23 @@ envModSource(c, "dummySource")
 
 void DAHDSRPanel::resized()
 {
-    auto n = getWidth() / 12; //note: this component should always have a 4:3 aspect ratio, therefore width = 9 * n
-    graph.setBounds(0, 0, 7 * n, 5 * n);
-    sDelay.setBounds(0, 5 * n, 2 * n, 2 * n);
-    sAttack.setBounds(2 * n, 5 * n, 2 * n, 2 * n);
-    sHold.setBounds(4 * n, 5 * n, 2 * n, 2 * n);
-    sDecay.setBounds(6 * n, 5 * n, 2 * n, 2 * n);
-    sSustain.setBounds(8 * n, 5 * n, 2 * n, 2 * n);
-    sRelease.setBounds(10 * n, 5 * n, 2 * n, 2 * n);
+    auto dX = getWidth() / 12;
+    auto dY = getHeight() / 8;
+    graph.setBounds(0, 0, 4 * dX, 3 * dY);
     
-    lDelay.setBounds(0, 7 * n, 2 * n, n);
-    lAttack.setBounds(2 * n, 7 * n, 2 * n, n);
-    lHold.setBounds(4 * n, 7 * n, 2 * n, n);
-    lDecay.setBounds(6 * n, 7 * n, 2 * n, n);
-    lSustain.setBounds(8 * n, 7 * n, 2 * n, n);
-    lRelease.setBounds(10 * n, 7 * n, 2 * n, n);
+    sDelay.setBounds(0, 3 * dY, 2 * dX, 2 * dX);
+    sAttack.setBounds(2 * dX, 3 * dY, 2 * dX, 2 * dX);
+    sHold.setBounds(4 * dX, 3 * dY, 2 * dX, 2 * dX);
+    sDecay.setBounds(6 * dX, 3 * dY, 2 * dX, 2 * dX);
+    sSustain.setBounds(8 * dX, 3 * dY, 2 * dX, 2 * dX);
+    sRelease.setBounds(10 * dX, 3 * dY, 2 * dX, 2 * dX);
     
-    envModSource.setBounds(8 * n, n, 3 * n, 3 * n);
+    lDelay.setBounds(0, 5 * dY, 2 * dX, dY);
+    lAttack.setBounds(2 * dX, 5 * dY, 2 * dX, dY);
+    lHold.setBounds(4 * dX, 5 * dY, 2 * dX, dY);
+    lDecay.setBounds(6 * dX, 5 * dY, 2 * dX, dY);
+    lSustain.setBounds(8 * dX, 5 * dY, 2 * dX, dY);
+    lRelease.setBounds(10 * dX, 5 * dY, 2 * dX, dY);
+    
+    envModSource.setBounds(7 * dX, dY, dX, dX);
 }

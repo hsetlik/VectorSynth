@@ -11,37 +11,19 @@
 #pragma once
 #include <JuceHeader.h>
 #include "EnvelopeComponent.h"
+#include "WavetableComponent.h"
 class DummyContainer : public juce::DragAndDropContainer, public juce::Component
 {
 public:
-    DummyContainer(juce::AudioProcessorValueTreeState* t)
+    DummyContainer(juce::AudioProcessorValueTreeState* t, std::vector<std::vector<float>> v) : panel(this, v, t)
     {
-        slider1.setRange(20.0f, 20000.0f);
-        slider1.setValue(150.0f);
-        slider1.setSliderStyle(juce::Slider::Rotary);
-        slider2.setRange(0.0f, 1.0f);
-        slider2.setValue(0.0f);
-        slider2.setSliderStyle(juce::Slider::Rotary);
-        
-        addAndMakeVisible(&slider1);
-        addAndMakeVisible(&slider2);
-        attachment1.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "frequency", slider1));
-        attachment2.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "wavetablePos", slider2));
+        addAndMakeVisible(&panel);
     }
     ~DummyContainer() {}
     void resized() override
     {
-        auto n = getWidth() / 2;
-        slider1.setBounds(0, 0, n, n);
-        slider2.setBounds(n, 0, n, n);
-    }
-    void paint(juce::Graphics& g) override
-    {
-        
+        panel.setBounds(0, 0, getWidth(), getHeight());
     }
 private:
-    juce::Slider slider1;
-    juce::Slider slider2;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment1;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment2;
+    SoundSourcePanel panel;
 };

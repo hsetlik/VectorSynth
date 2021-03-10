@@ -19,15 +19,14 @@ SourceButtonGroup::SourceButtonGroup(ModSourceComponent* s, int srcIndex, juce::
     
     closeButton.addListener(l);
     selButton.addListener(l);
-    allColors.add(Color::RGBColor(38, 48, 55), "slateBkg");
     
-    background = allColors.getByDesc("slateBkg");
+    background = Color::RGBColor(38, 48, 55);
     setInterceptsMouseClicks(false, true);
 }
 
 void SelectorButton::paintButton(juce::Graphics &g, bool, bool)
 {
-    g.setColour(allColors.getByDesc("darkRim"));
+    g.setColour(juce::Colours::black.brighter(0.1f));
     g.fillEllipse(getLocalBounds().toFloat());
     g.setColour(centerColor);
     g.fillEllipse(getLocalBounds().toFloat().reduced(3.5f));
@@ -37,9 +36,9 @@ void RemoveButton::paintButton(juce::Graphics &g, bool, bool)
 {
     juce::Path p;
     auto bounds = getLocalBounds().toFloat();
-    g.setColour(allColors.getByDesc("SatRed"));
+    g.setColour(Color::RGBColor(186, 51, 77));
     g.fillEllipse(bounds);
-    g.setColour(allColors.getByDesc("DarkRed"));
+    g.setColour(Color::RGBColor(112, 32, 51));
     auto centerX = getBounds().toFloat().getWidth() / 2.0f;
     auto centerY = getBounds().toFloat().getHeight() / 2;
     auto rWidth = bounds.getWidth() * 0.2f;
@@ -193,10 +192,9 @@ void ModTargetComponent::resized()
         {
             auto n = getWidth() / 9.0f;
             auto centerBounds = juce::Rectangle<float> {1.5f * n, 1.5f * n, 6.0f * n, 6.0f * n};
-            auto sliderBounds = centerBounds.expanded(0.25f * n).toNearestInt();
+            auto sliderBounds = centerBounds.expanded(0.35f * n).toNearestInt();
             sliders[count]->setBounds(sliderBounds);
-            auto colorId = "ColorL" + juce::String(count);
-            auto color = targetColors.getByDesc(colorId);
+            auto color = targetColors.atIndex(count);
             i->setBackground(color);
             i->setBounds(0, 0, getWidth(), getHeight());
             i->resized();
@@ -321,9 +319,7 @@ void ModTargetSlider::resized()
         {
             auto sliderBounds = centerBounds.toNearestInt().expanded(0.4f * n);
             sliders[count]->setBounds(sliderBounds);
-            auto colorId = "ColorL" + juce::String(count);
-            auto color = targetColors.getByDesc(colorId);
-            i->setBackground(color);
+            
             i->setBounds(0, 0, getWidth(), getHeight());
             i->resized();
             i->buttonsToFront();
@@ -332,7 +328,7 @@ void ModTargetSlider::resized()
             ++count;
         }
     }
-    mTarget.setBounds(centerBounds.toNearestInt());
+    mTarget.setBounds(centerBounds.reduced(n / 4.0f).toNearestInt());
     mTarget.toFront(true);
     if(validSelected)
     {
