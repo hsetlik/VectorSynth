@@ -204,6 +204,17 @@ struct Color
         set.add(b, "gradientEnd");
         return set;
     }
+    static std::vector<juce::Colour> shadesBetweenVec(juce::Colour a, juce::Colour b, int numShades)
+    {
+        
+        std::vector<juce::Colour> output;
+        auto inc = 1.0f / (float) numShades;
+        for(int i = 1; i < (numShades - 1); ++i)
+        {
+            output.push_back(blendHSB(a, b, inc * i));
+        }
+        return output;
+    }
 private:
     static int lerp(int a, int b, float ratio)
     {

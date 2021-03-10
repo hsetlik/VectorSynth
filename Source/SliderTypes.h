@@ -10,7 +10,7 @@
 
 #pragma once
 #include <JuceHeader.h>
-#include "RgbColor.h"
+#include "GlobalColor.h"
 #include "CustomLnFs.h"
 #include "ModTargetComponent.h"
 

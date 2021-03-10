@@ -13,11 +13,11 @@ WavetableDisplay::WavetableDisplay(std::vector<std::vector<float>> data, juce::S
 fake3d(true),
 valueSet(data),
 position(pos),
-highlight(Color::RGBColor(255, 236, 95)),
+highlight(UXColor::highlight),
 currentValues(128, 0.0f)
 {
     s->addListener(this);
-    background = juce::Colours::black.brighter(0.1f);
+    background = UXColor::darkBkgnd;
     numTraces = 0;
     resolution = 128;
     for(auto d : valueSet)
@@ -25,7 +25,7 @@ currentValues(128, 0.0f)
         ++numTraces;
         traces.add(new juce::Path());
     }
-    colors.add(Color::shadesBetween(Color::RGBColor(199, 200, 202), Color::RGBColor(37, 49, 53), numTraces));
+    colors.add(Color::shadesBetween(Color::RGBColor(199, 200, 202), UXColor::grayShadeD, numTraces));
 }
 
 void WavetableDisplay::setPosition(float pos)
@@ -124,16 +124,28 @@ void WavetableDisplay::sliderValueChanged(juce::Slider *s)
     repaint();
 }
 
-SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, std::vector<std::vector<float>> graphData, juce::AudioProcessorValueTreeState* t) :
+WaveSelector::WaveSelector(WavetableOsc* o) : osc(o), lButton(true, this), rButton(false, this), tableNames(osc->waveNames)
+{
+    addAndMakeVisible(&waveBox);
+    addAndMakeVisible(&rButton);
+    addAndMakeVisible(&lButton);
+    waveBox.addItemList(tableNames, 1);
+    waveBox.setSelectedItemIndex(1);
+}
+
+SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOsc* o) :
 sPos(c, 0),
 sLevel(c, 0),
 envPanel(c),
-waveGraph(graphData, &sPos.mTarget)
+waveGraph(o->getDataToGraph(128), &sPos.mTarget),
+selector(o),
+osc(o)
 {
     addAndMakeVisible(sPos);
     addAndMakeVisible(sLevel);
     addAndMakeVisible(envPanel);
     addAndMakeVisible(waveGraph);
+    addAndMakeVisible(selector);
     
     freqAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "frequency", sLevel.mTarget));
     posAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "wavetablePos", sPos.mTarget));
@@ -144,6 +156,7 @@ void SoundSourcePanel::resized()
     auto dX = getWidth() / 12;
     auto dY = getHeight() / 12;
     waveGraph.setBounds(dX / 5, dY / 5, 4.5 * dX, 4.5 * dY);
+    selector.setBounds(dX * 5, dY / 3, dX * 6.5, dY / 2);
     envPanel.setBounds(dX / 5, 5 * dY, 8 * dX, 7 * dY);
     sLevel.setBounds(8 * dX, 2 * dY, 2.5f * dY, 2.5f * dY);
     sPos.setBounds(8 * dX, 5 * dY, 2.5f * dY, 2.5f * dY);

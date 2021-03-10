@@ -15,7 +15,7 @@
 class DummyContainer : public juce::DragAndDropContainer, public juce::Component
 {
 public:
-    DummyContainer(juce::AudioProcessorValueTreeState* t, std::vector<std::vector<float>> v) : panel(this, v, t)
+    DummyContainer(juce::AudioProcessorValueTreeState* t,  WavetableOsc* o) : panel(this, t, o)
     {
         addAndMakeVisible(&panel);
     }

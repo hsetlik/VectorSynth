@@ -11,7 +11,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "RgbColor.h"
-static ColorSet allColors;
+#include "GlobalColor.h"
 
 const juce::Colour sourceRimColor = Color::RGBColor(37, 49, 53);
 

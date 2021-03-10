@@ -51,10 +51,81 @@ private:
     std::vector<float> currentValues;
 };
 
+class ArrowButton : public juce::ShapeButton
+{
+public:
+    ArrowButton(bool p, juce::Button::Listener* l) :  juce::ShapeButton("modButton",  juce::Colours::black, juce::Colours::black, juce::Colours::black), pointsLeft(p)
+    {
+        addListener(l);
+    }
+    ~ArrowButton() {}
+    void paintButton(juce::Graphics& g, bool mouseOver, bool isMouseDown) override
+    {
+        auto fBounds = getLocalBounds().toFloat();
+        outer.clear();
+        outer.addRoundedRectangle(fBounds, fBounds.getWidth() / 8.0f);
+        g.setColour(UXColor::darkGray);
+        g.fillPath(outer);
+        inner.clear();
+        inner.addRoundedRectangle(fBounds.reduced(fBounds.getWidth() / 15), fBounds.getWidth() / 8.0f);
+        g.setColour(UXColor::lightGray);
+        g.fillPath(inner);
+        g.setColour(UXColor::darkGray);
+        arrow.clear();
+        auto t1 = juce::Point<float>(fBounds.getWidth() / 3, fBounds.getHeight() / 4);
+        auto t2 = juce::Point<float>(fBounds.getWidth() / 3, 3 * (fBounds.getHeight() / 4));
+        auto t3 = juce::Point<float>(2 * (fBounds.getWidth() / 3), fBounds.getHeight() / 2);
+        arrow.addTriangle(t1, t2, t3);
+        if(pointsLeft)
+            arrow.applyTransform(juce::AffineTransform::rotation((float)M_PI, fBounds.getWidth() / 2, fBounds.getHeight() / 2));
+        g.fillPath(arrow);
+    }
+private:
+    bool pointsLeft;
+    juce::Path outer;
+    juce::Path inner;
+    juce::Path arrow;
+};
+
+class WaveSelector : public juce::Component, public juce::Button::Listener
+{
+public:
+    WaveSelector(WavetableOsc* o);
+    ~WaveSelector() {}
+    void buttonClicked(juce::Button* b) override
+    {
+        auto idx = waveBox.getSelectedItemIndex();
+        if(b == &lButton)
+        {
+            if(idx > 1)
+                waveBox.setSelectedItemIndex(idx - 1);
+        }
+        else
+        {
+            if(idx < tableNames.size())
+                waveBox.setSelectedItemIndex(idx + 1);
+        }
+    }
+    void resized() override
+    {
+        auto n = getWidth() / 12;
+        auto h = getHeight();
+        lButton.setBounds(0, 0, n, h);
+        rButton.setBounds(n, 0, n, h);
+        waveBox.setBounds(2 * n, 0, 10 * n, h);
+    }
+private:
+    WavetableOsc* osc;
+    juce::ComboBox waveBox;
+    ArrowButton lButton;
+    ArrowButton rButton;
+    juce::StringArray tableNames;
+};
+
 class SoundSourcePanel : public juce::Component
 {
 public:
-    SoundSourcePanel(juce::DragAndDropContainer* c, std::vector<std::vector<float>> graphData, juce::AudioProcessorValueTreeState* t);
+    SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOsc* o);
     ~SoundSourcePanel() {}
     void resized() override;
 private:
@@ -62,9 +133,10 @@ private:
     OscLevelSlider sLevel;
     DAHDSRPanel envPanel;
     WavetableDisplay waveGraph;
+    WaveSelector selector;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
-    
+    WavetableOsc* osc;
 };
 
 

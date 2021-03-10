@@ -22,11 +22,8 @@ public:
         hiddenButton.setButtonText("hidden");
         hiddenButton.addListener(l);
         hiddenButton.setVisible(false);
-        allColors.add(Color::RGBColor(52, 77, 96), "destDefault");
-        centerColor = allColors.getByDesc("destDefault");
-        allColors.add(Color::RGBColor(169, 179, 193), "paleBkg");
-        allColors.add(Color::RGBColor(37, 49, 53), "darkRim");
-        rimColor = allColors.getByDesc("paleBkg");
+        centerColor = Color::RGBColor(52, 77, 96);
+        rimColor = Color::RGBColor(169, 179, 193);
         
     }
     void itemDropped(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
@@ -37,14 +34,6 @@ public:
             newSource = sourceComp;
             hiddenButton.triggerClick();
         }
-    }
-    void setColor(const char* d)
-    {
-        centerColor = allColors.getByDesc(d);
-    }
-    void setColor(juce::String& d)
-    {
-        centerColor = allColors.getByDesc(d);
     }
     ModSourceComponent* getNewSource() {return newSource;}
     void paint(juce::Graphics& g) override

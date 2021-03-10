@@ -108,6 +108,7 @@ public:
         return output;
     }
     std::vector<std::vector<float>> getDataToGraph(int resolution);
+    juce::StringArray waveNames;
 private:
     int lowerIndex;
     int upperIndex;

@@ -48,7 +48,7 @@ void DAHDSRPanel::resized()
 {
     auto dX = getWidth() / 12;
     auto dY = getHeight() / 8;
-    graph.setBounds(0, 0, 4 * dX, 3 * dY);
+    graph.setBounds(getWidth() / 40, getWidth() / 40, 4 * dX, 3 * dY);
     
     sDelay.setBounds(0, 3 * dY, 2 * dX, 2 * dX);
     sAttack.setBounds(2 * dX, 3 * dY, 2 * dX, 2 * dX);
@@ -65,4 +65,12 @@ void DAHDSRPanel::resized()
     lRelease.setBounds(10 * dX, 5 * dY, 2 * dX, dY);
     
     envModSource.setBounds(7 * dX, dY, dX, dX);
+}
+
+void DAHDSRPanel::paint(juce::Graphics &g)
+{
+    g.setColour(envModSource.getColor().darker(0.3f));
+    g.fillRect(getLocalBounds());
+    g.setColour(envModSource.getColor().darker(0.1f));
+    g.fillRect(getLocalBounds().reduced(getLocalBounds().getWidth() / 45));
 }

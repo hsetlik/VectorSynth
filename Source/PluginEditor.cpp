@@ -11,7 +11,7 @@
 
 //==============================================================================
 WavetableSynthesizerAudioProcessorEditor::WavetableSynthesizerAudioProcessorEditor (WavetableSynthesizerAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), container(&audioProcessor.tree, audioProcessor.osc.getDataToGraph(128))
+    : AudioProcessorEditor (&p), audioProcessor (p), container(&audioProcessor.tree, &audioProcessor.osc)
 {
     addAndMakeVisible(&container);
     // Make sure that before the constructor has finished, you've set the

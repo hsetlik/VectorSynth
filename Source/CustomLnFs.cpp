@@ -22,14 +22,14 @@ void ModSystemLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, int
     auto radius = fBounds.getWidth() * 0.45f;
     juce::Path track;
     track.addCentredArc(centerX, centerY, radius, radius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
-    g.setColour(Color::RGBColor(125, 126, 129));
+    g.setColour(UXColor::lightGray);
     g.strokePath(track, strokeType);
     juce::Path thumb;
     
-    g.setColour(Color::RGBColor(255, 236, 95));
+    g.setColour(UXColor::highlight);
     if(s.getValue() < 0.0f)
     {
-        g.setColour(Color::RGBColor(32, 139, 181));
+        g.setColour(UXColor::thumbBlue);
         thumb.addCentredArc(centerX, centerY, radius, radius, 0.0f, rotaryStartAngle + angle,  midAngle, true);
     }
     else
@@ -39,19 +39,16 @@ void ModSystemLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, int
 
 SynthSourceLookAndFeel::SynthSourceLookAndFeel()
 {
-    colors.add(Color::RGBColor(55, 56, 68), "dullerGray");
-    colors.add(Color::RGBColor(125, 126, 129), "dullGray");
-    colors.add(Color::RGBColor(255, 236, 95), "thumbYellow");
-    colors.add(Color::RGBColor(32, 139, 181), "thumbBlue");
+    
 }
 
 void SynthSourceLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, int width, int height, float sliderPos, const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider &s)
 {
     auto iBounds = juce::Rectangle<int> {x, y, width, height};
     auto fBounds = iBounds.toFloat();
-    g.setColour(Color::RGBColor(55, 56, 68));
+    g.setColour(UXColor::darkGray);
     g.fillEllipse(fBounds);
-    g.setColour(Color::RGBColor(125, 126, 129));
+    g.setColour(UXColor::lightGray);
     auto angle = fabs(rotaryStartAngle - rotaryEndAngle) * sliderPos;
     auto centerX = fBounds.getX() + (fBounds.getWidth() / 2.0f);
     auto centerY = fBounds.getY() + (fBounds.getHeight() / 2.0f);
@@ -60,7 +57,7 @@ void SynthSourceLookAndFeel::drawRotarySlider(juce::Graphics &g, int x, int y, i
     juce::Path track;
     track.addCentredArc(centerX, centerY, radius, radius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
     g.strokePath(track, strokeType);
-    g.setColour(Color::RGBColor(255, 236, 95));
+    g.setColour(UXColor::highlight);
     auto iRadius = radius * 0.6f;
     juce::Path thumb;
     thumb.startNewSubPath(centerX, centerY - radius);

@@ -32,7 +32,7 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                        ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(handler.getWav(1))
 #endif
 {
-    
+    osc.waveNames = handler.tableNames;
 }
 
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()

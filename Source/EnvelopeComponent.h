@@ -17,6 +17,7 @@ class DAHDSRPanel : public juce::Component
 public:
     DAHDSRPanel(juce::DragAndDropContainer* c);
     void resized() override;
+    void paint(juce::Graphics& g) override;
 private:
     EnvelopeDial sDelay;
     EnvelopeDial sAttack;

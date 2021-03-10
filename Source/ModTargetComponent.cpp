@@ -73,7 +73,7 @@ void SourceButtonGroup::resized()
  void SourceButtonGroup::paint(juce::Graphics &g)
 {
     juce::Path center;
-    g.setColour(background);
+    g.setColour(UXColor::modTargetShades[sourceIndex]);
     auto n = getBounds().toFloat().getWidth() /  9.0f;
     center.addEllipse(selButton.getBounds().toFloat().expanded(0.1f * n));
     auto selBounds = selButton.getBounds().toFloat().expanded(0.1f * n);
@@ -100,7 +100,6 @@ void SourceButtonGroup::resized()
     close.closeSubPath();
     close.applyTransform(juce::AffineTransform::rotation(increment * 1.5f, n * 4.5f, n * 4.5f));
     g.fillPath(close);
-    
 }
 
 ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSources(0), mTarget(c, this), container(c)
@@ -328,7 +327,7 @@ void ModTargetSlider::resized()
             ++count;
         }
     }
-    mTarget.setBounds(centerBounds.reduced(n / 4.0f).toNearestInt());
+    mTarget.setBounds(centerBounds.reduced(0.5f * n).toNearestInt());
     mTarget.toFront(true);
     if(validSelected)
     {

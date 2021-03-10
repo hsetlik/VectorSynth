@@ -28,9 +28,9 @@ public:
     {
         return wavFiles[tableNames.indexOf(name)];
     }
+    juce::StringArray tableNames;
 private:
     int numFiles;
     juce::File audioFolder;
-    juce::StringArray tableNames;
     juce::Array<juce::File> wavFiles;
 };
