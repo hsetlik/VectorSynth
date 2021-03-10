@@ -24,7 +24,7 @@ public:
     void sliderValueChanged(juce::Slider* s) override;
     void alterFor3d(juce::Path* p, float index)
     {
-        auto fBounds = getBounds().toFloat();
+        fBounds = getBounds().toFloat();
         auto dX = fBounds.getWidth() / numTraces / 4;
         auto dY = fBounds.getHeight() / numTraces / 4;
         auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (fBounds.getWidth() / 8), -(dY * index * 0.7f) +  (fBounds.getHeight() / 5)));
@@ -39,17 +39,38 @@ public:
     }
     void setValues(std::vector<std::vector<float>> vals)
     {
+        valueSet.clear();
         valueSet = vals;
+        numTraces = (int)valueSet.size();
+        if(traces.size() < numTraces)
+        {
+            for(int i = 0; i < numTraces - traces.size() + 1; ++i)
+            {
+                traces.add(new juce::Path());
+                traces.getLast()->preallocateSpace(394);
+            }
+                
+        }
+        else if(traces.size() > numTraces)
+        {
+            traces.removeRange(numTraces, traces.size() - numTraces);
+        }
         setPosition(position);
+        tracesNeedRepaint = true;
+        repaint();
     }
 private:
+    std::unique_ptr<juce::Path> blank;
+    juce::Rectangle<float> fBounds;
     bool fake3d;
     int resolution;
+    bool tracesNeedRepaint;
     int numTraces;
+    juce::Path current;
+    juce::OwnedArray<juce::Path, juce::CriticalSection> traces;
     std::vector<std::vector<float>> valueSet;
     float position;
     juce::Colour background;
-    juce::OwnedArray<juce::Path> traces;
     juce::Colour highlight;
     ColorSet colors;
     ColorSet workingColors;

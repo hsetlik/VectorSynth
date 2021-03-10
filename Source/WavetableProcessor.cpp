@@ -218,15 +218,11 @@ std::vector<float> WavetableFrame::getBasicVector(int resolution)
 {
     std::vector<float> out;
     auto inc = floor(TABLESIZE / resolution);
-    if(tables.getLock().tryEnter())
-    {
         for(int sample = 0; sample < resolution; ++sample)
         {
             auto f = (float)tables[0]->table[inc * sample]; //for purposes of graphing, always use the first table with the most harmonic detail
             out.push_back(f);
         }
-        tables.getLock().exit();
-    }
     return out;
 }
 
@@ -278,6 +274,7 @@ void WavetableOsc::replaceTables(juce::String nTables)
     buffer.clear();
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     std::vector<float> vec;
+    auto startCount = numFrames;
     for(int i = 0; i < sNumFrames; ++i)
     {
         for(int sample = 0; sample < TABLESIZE; ++sample)
@@ -285,13 +282,14 @@ void WavetableOsc::replaceTables(juce::String nTables)
             vec.push_back(buffer.getSample(0, sample));
         }
         addFrame(vec);
-        frames.remove(0);
         vec.clear();
         buffer.clear();
         currentSample += TABLESIZE;
         printf("Loaded frame %d from sample %ld\n", i, currentSample);
         reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     }
+    frames.removeRange(0, startCount);
+    numFrames -= startCount;
     delete reader;
 }
 
