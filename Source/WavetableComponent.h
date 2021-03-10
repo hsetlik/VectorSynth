@@ -31,6 +31,7 @@ public:
         p->applyTransform(t);
         
     }
+    
     void mouseDown(const juce::MouseEvent &m) override
     {
         fake3d = !fake3d;
@@ -44,16 +45,20 @@ public:
         numTraces = (int)valueSet.size();
         if(traces.size() < numTraces)
         {
-            for(int i = 0; i < numTraces - traces.size() + 1; ++i)
+            traces.ensureStorageAllocated(numTraces);
+            for(int i = 0; i < numTraces - traces.size(); ++i)
             {
                 traces.add(new juce::Path());
                 traces.getLast()->preallocateSpace(394);
             }
-                
         }
         else if(traces.size() > numTraces)
         {
-            traces.removeRange(numTraces, traces.size() - numTraces);
+            for(int i = 0; i < traces.size() - numTraces; ++i)
+            {
+                traces.remove(traces.size() - 1);
+            }
+            traces.minimiseStorageOverheads();
         }
         setPosition(position);
         tracesNeedRepaint = true;

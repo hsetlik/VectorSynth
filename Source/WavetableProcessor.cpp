@@ -237,6 +237,7 @@ WavetableOsc::WavetableOsc(juce::File wavData)
     printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
     auto numSamples = reader->lengthInSamples;
     int sNumFrames = floor(numSamples / TABLESIZE);
+    
     long currentSample = 0;
     printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
@@ -268,6 +269,7 @@ void WavetableOsc::replaceTables(juce::String nTables)
     printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
     auto numSamples = reader->lengthInSamples;
     int sNumFrames = floor(numSamples / TABLESIZE);
+    frames.ensureStorageAllocated(sNumFrames);
     long currentSample = 0;
     printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
@@ -289,6 +291,7 @@ void WavetableOsc::replaceTables(juce::String nTables)
         reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     }
     frames.removeRange(0, startCount);
+    frames.minimiseStorageOverheads();
     numFrames -= startCount;
     delete reader;
 }

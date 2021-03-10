@@ -69,11 +69,11 @@ void WavetableDisplay::paint(juce::Graphics &g)
     bool currentFinished = false;
     if(numTraces >= 1)
     {
-        if(fake3d)
+        if(fake3d && !(traces.size() < numTraces - 1))
         {
             for(int p = (numTraces - 1); p >= 0; --p)
             {
-                    traces[p]->swapWithPath(*blank);
+                    traces[p]->clear();
                     traces[p]->startNewSubPath(0.0f, fBounds.getBottom());
                     traces[p]->lineTo(0.0f, y0);
                     for(int i = 0; i < resolution; ++i)
