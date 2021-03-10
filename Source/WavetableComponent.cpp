@@ -124,13 +124,14 @@ void WavetableDisplay::sliderValueChanged(juce::Slider *s)
     repaint();
 }
 
-WaveSelector::WaveSelector(WavetableOsc* o) : osc(o), lButton(true, this), rButton(false, this), tableNames(osc->waveNames)
+WaveSelector::WaveSelector(WavetableOsc* o, juce::ComboBox::Listener* list) : osc(o), lButton(true, this), rButton(false, this), tableNames(osc->waveNames)
 {
     addAndMakeVisible(&waveBox);
     addAndMakeVisible(&rButton);
     addAndMakeVisible(&lButton);
     waveBox.addItemList(tableNames, 1);
     waveBox.setSelectedItemIndex(1);
+    waveBox.addListener(list);
 }
 
 SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOsc* o) :
@@ -138,7 +139,7 @@ sPos(c, 0),
 sLevel(c, 0),
 envPanel(c),
 waveGraph(o->getDataToGraph(128), &sPos.mTarget),
-selector(o),
+selector(o, this),
 osc(o)
 {
     addAndMakeVisible(sPos);
@@ -162,3 +163,9 @@ void SoundSourcePanel::resized()
     sPos.setBounds(8 * dX, 5 * dY, 2.5f * dY, 2.5f * dY);
 }
 
+void SoundSourcePanel::comboBoxChanged(juce::ComboBox *c)
+{
+    auto str = c->getText();
+    osc->replaceTables(str);
+    waveGraph.setValues(osc->getDataToGraph(128));
+}

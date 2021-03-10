@@ -84,6 +84,7 @@ public:
         frames.add(new WavetableFrame(d));
         ++numFrames;
     }
+    void replaceTables(juce::String nTables);
     void setSampleRate(double newRate)
     {
         sampleRate = newRate;
@@ -109,6 +110,7 @@ public:
     }
     std::vector<std::vector<float>> getDataToGraph(int resolution);
     juce::StringArray waveNames;
+    juce::Array<juce::File> waveFiles;
 private:
     int lowerIndex;
     int upperIndex;

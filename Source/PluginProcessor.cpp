@@ -33,6 +33,7 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
 #endif
 {
     osc.waveNames = handler.tableNames;
+    osc.waveFiles = handler.wavFiles;
 }
 
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()

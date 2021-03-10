@@ -37,6 +37,11 @@ public:
         setPosition(position);
         repaint();
     }
+    void setValues(std::vector<std::vector<float>> vals)
+    {
+        valueSet = vals;
+        setPosition(position);
+    }
 private:
     bool fake3d;
     int resolution;
@@ -90,7 +95,7 @@ private:
 class WaveSelector : public juce::Component, public juce::Button::Listener
 {
 public:
-    WaveSelector(WavetableOsc* o);
+    WaveSelector(WavetableOsc* o, juce::ComboBox::Listener* list);
     ~WaveSelector() {}
     void buttonClicked(juce::Button* b) override
     {
@@ -122,12 +127,13 @@ private:
     juce::StringArray tableNames;
 };
 
-class SoundSourcePanel : public juce::Component
+class SoundSourcePanel : public juce::Component, public juce::ComboBox::Listener
 {
 public:
     SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOsc* o);
     ~SoundSourcePanel() {}
     void resized() override;
+    void comboBoxChanged(juce::ComboBox* c) override;
 private:
     TablePositionSlider sPos;
     OscLevelSlider sLevel;

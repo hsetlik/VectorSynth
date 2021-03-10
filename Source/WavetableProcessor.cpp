@@ -218,10 +218,14 @@ std::vector<float> WavetableFrame::getBasicVector(int resolution)
 {
     std::vector<float> out;
     auto inc = floor(TABLESIZE / resolution);
-    for(int sample = 0; sample < resolution; ++sample)
+    if(tables.getLock().tryEnter())
     {
-        auto f = (float)tables[0]->table[inc * sample]; //for purposes of graphing, always use the first table with the most harmonic detail
-        out.push_back(f);
+        for(int sample = 0; sample < resolution; ++sample)
+        {
+            auto f = (float)tables[0]->table[inc * sample]; //for purposes of graphing, always use the first table with the most harmonic detail
+            out.push_back(f);
+        }
+        tables.getLock().exit();
     }
     return out;
 }
@@ -250,6 +254,38 @@ WavetableOsc::WavetableOsc(juce::File wavData)
             vec.push_back(buffer.getSample(0, sample));
         }
         addFrame(vec);
+        vec.clear();
+        buffer.clear();
+        currentSample += TABLESIZE;
+        printf("Loaded frame %d from sample %ld\n", i, currentSample);
+        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
+    }
+    delete reader;
+}
+
+void WavetableOsc::replaceTables(juce::String nTables)
+{
+    auto wavData = waveFiles[waveNames.indexOf(nTables)];
+    juce::AudioFormatManager manager;
+    manager.registerBasicFormats();
+    auto reader = manager.createReaderFor(wavData);
+    printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
+    auto numSamples = reader->lengthInSamples;
+    int sNumFrames = floor(numSamples / TABLESIZE);
+    long currentSample = 0;
+    printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
+    auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
+    buffer.clear();
+    reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
+    std::vector<float> vec;
+    for(int i = 0; i < sNumFrames; ++i)
+    {
+        for(int sample = 0; sample < TABLESIZE; ++sample)
+        {
+            vec.push_back(buffer.getSample(0, sample));
+        }
+        addFrame(vec);
+        frames.remove(0);
         vec.clear();
         buffer.clear();
         currentSample += TABLESIZE;
