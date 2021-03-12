@@ -14,6 +14,39 @@
 #include "WavetableProcessor.h"
 #include "EnvelopeComponent.h"
 
+struct graphDataset
+{
+    const int resolution = 128;
+    const int max_frames = 30;
+    graphDataset(std::vector<std::vector<float>> input) :
+    values(std::make_unique<std::vector<std::vector<float>>>(max_frames, std::vector<float>(resolution, 0.0f)))
+    {setData(input);}
+    void setData(std::vector<std::vector<float>> input)
+    {
+        int oInc;
+        int framesToMake;
+        auto inputFrames = (int)input.size();
+        if(inputFrames <= max_frames)
+        {
+            oInc = 1;
+            framesToMake = inputFrames;
+        }
+        else
+        {
+            oInc = inputFrames / max_frames;
+            framesToMake = max_frames;
+        }
+        values.reset(new std::vector<std::vector<float>>(framesToMake, std::vector<float>(resolution, 0.0f)));
+        for(int i = 0; i < framesToMake; ++i)
+        {
+            auto& inVec = input[i];
+            values->at(i).assign(inVec.begin(), inVec.end());
+        }
+        values->shrink_to_fit();
+    }
+    std::unique_ptr<std::vector<std::vector<float>>> values;
+};
+
 class WavetableDisplay : public juce::Component, public juce::Slider::Listener
 {
 public:
@@ -29,7 +62,6 @@ public:
         auto dY = fBounds.getHeight() / numTraces / 4;
         auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (fBounds.getWidth() / 8), -(dY * index * 0.7f) +  (fBounds.getHeight() / 5)));
         p->applyTransform(t);
-        
     }
     
     void mouseDown(const juce::MouseEvent &m) override
