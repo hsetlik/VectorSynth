@@ -145,6 +145,7 @@ public:
     }
     std::vector<std::vector<float>> getDataToGraph(int resolution) {return osc->getDataToGraph(resolution);}
     juce::StringArray waveNames;
+    juce::Array<juce::File> waveFiles;
 private:
     std::unique_ptr<WavetableOsc> osc;
 };
