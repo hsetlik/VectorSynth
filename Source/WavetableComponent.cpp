@@ -124,7 +124,7 @@ void WavetableDisplay::sliderValueChanged(juce::Slider *s)
     repaint();
 }
 
-WaveSelector::WaveSelector(WavetableOsc* o) : osc(o), lButton(true, this), rButton(false, this), tableNames(osc->waveNames)
+WaveSelector::WaveSelector(WavetableOscHolder* o) : osc(o), lButton(true, this), rButton(false, this), tableNames(osc->waveNames)
 {
     addAndMakeVisible(&waveBox);
     addAndMakeVisible(&rButton);
@@ -133,7 +133,7 @@ WaveSelector::WaveSelector(WavetableOsc* o) : osc(o), lButton(true, this), rButt
     waveBox.setSelectedItemIndex(1);
 }
 
-SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOsc* o) :
+SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o) :
 sPos(c, 0),
 sLevel(c, 0),
 envPanel(c),

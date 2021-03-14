@@ -90,7 +90,7 @@ private:
 class WaveSelector : public juce::Component, public juce::Button::Listener
 {
 public:
-    WaveSelector(WavetableOsc* o);
+    WaveSelector(WavetableOscHolder* o);
     ~WaveSelector() {}
     void buttonClicked(juce::Button* b) override
     {
@@ -115,7 +115,7 @@ public:
         waveBox.setBounds(2 * n, 0, 10 * n, h);
     }
 private:
-    WavetableOsc* osc;
+    WavetableOscHolder* osc;
     juce::ComboBox waveBox;
     ArrowButton lButton;
     ArrowButton rButton;
@@ -125,7 +125,7 @@ private:
 class SoundSourcePanel : public juce::Component
 {
 public:
-    SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOsc* o);
+    SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o);
     ~SoundSourcePanel() {}
     void resized() override;
 private:
@@ -136,7 +136,7 @@ private:
     WaveSelector selector;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
-    WavetableOsc* osc;
+    WavetableOscHolder* osc;
 };
 
 
