@@ -84,6 +84,7 @@ void fft(int N, double *ar, double *ai)
 
 WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
 {
+    lastMinFreq = 0.0f;
     auto inc = float(data.size() * (1.0f / TABLESIZE));
     float bottomSample, topSample, difference, skew, sample;
     double* freqWaveReal = new double[TABLESIZE];
@@ -136,23 +137,25 @@ int WavetableFrame::createTables(double *waveReal, double *waveImag, int numSamp
             ai[numSamples - idx] = waveImag[numSamples - idx];
         }
         // make the wavetable
-        scale = makeTable(ar, ai, numSamples, scale, topFreq);
+        scale = makeTable(ar, ai, numSamples, scale, lastMinFreq, topFreq);
         numTables++;
 
         // prepare for next table, topFreq *= 2 because we're using 1 waveTable per octave
+        lastMinFreq = topFreq;
         topFreq *= 2.0f;
         maxHarmonic >>= 1;
     }
     delete [] ar;
     delete [] ai;
+    printf("%d total wavetables\n", numTables);
     return numTables;
 }
-float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
+float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double bottomFreq, double topFreq)
 {
     //printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
     if(tablesAdded <= NUMTABLES)
     {
-        tables.add(new WaveTable(numSamples, topFreq, waveImag));
+        tables.add(new WaveTable(numSamples, bottomFreq, topFreq, waveImag));
         fft(numSamples, waveReal, waveImag);
         if (scale == 0.0f)
         {
@@ -217,7 +220,8 @@ std::vector<float> WavetableFrame::getBasicVector(int resolution)
     auto inc = floor(TABLESIZE / resolution);
     for(int sample = 0; sample < resolution; ++sample)
     {
-        auto f = (float)tables[0]->table[inc * sample]; //for purposes of graphing, always use the first table with the most harmonic detail
+        int idx = (int)inc *sample;
+        auto f = (float)tables[0]->table[idx]; //for purposes of graphing, always use the first table with the most harmonic detail
         out.push_back(f);
     }
     return out;
@@ -231,12 +235,12 @@ WavetableOsc::WavetableOsc(juce::File wavData)
     juce::AudioFormatManager manager;
     manager.registerBasicFormats();
     auto reader = manager.createReaderFor(wavData);
-    printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
+    //printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
     auto numSamples = reader->lengthInSamples;
     int sNumFrames = floor(numSamples / TABLESIZE);
     frames.ensureStorageAllocated(sNumFrames);
     long currentSample = 0;
-    printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
+    //printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
     buffer.clear();
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
@@ -251,7 +255,7 @@ WavetableOsc::WavetableOsc(juce::File wavData)
         vec.clear();
         buffer.clear();
         currentSample += TABLESIZE;
-        printf("Loaded frame %d from sample %ld\n", i, currentSample);
+        //printf("Loaded frame %d from sample %ld\n", i, currentSample);
         reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     }
     delete reader;

@@ -19,9 +19,10 @@ const int fftOrder = 10;
 
 struct WaveTable
 {
-    WaveTable(int size, double freq, double* input) : maxFreq(freq), length(size)
+    WaveTable(int size, double fMin, double fMax, double* input) :  minFreq(fMin), maxFreq(fMax), length(size)
     {
         double accum = 0.0f;
+        table = new double [size];
         for(int i = 0; i < length; ++i)
         {
             table[i] = input[i];
@@ -31,13 +32,18 @@ struct WaveTable
         //the average sample value for the first half of the wave
         if(accum / (double)(length / 2.0f) < 0.0f) //if the wave starts on a negative phase, invert it so they always match
         {
-            for(auto i : table)
-                i *= -1.0f;
+            for(int i = 0; i < size; ++i)
+                table[i] *= -1.0f;
         }
     }
+    ~WaveTable()
+    {
+        delete [] table;
+    }
+    double minFreq;
     double maxFreq; //max frequency this table can use before aliasing
     int length; //number of samples
-    std::array<double, TABLESIZE> table;
+    double* table;
 };
 
 class WavetableFrame
@@ -50,11 +56,12 @@ public:
         sampleRate = rate;
     }
     int createTables(double* waveReal, double* waveImag, int numSamples);
-    float makeTable(double* waveReal, double* waveImag, int numSamples, double scale, double topFreq);
+    float makeTable(double* waveReal, double* waveImag, int numSamples, double scale, double bottomFreq, double topFreq);
     float getSample(double frequency);
     WaveTable* tableForFreq(double frequency);
     std::vector<float> getBasicVector(int resolution);
 private:
+    double lastMinFreq;
     int tablesAdded;
     std::vector<float> data; //the initial input data from which all the tables are made
     juce::OwnedArray<WaveTable, juce::CriticalSection> tables; //array of tables
@@ -143,6 +150,7 @@ public:
     }
     std::vector<std::vector<float>> getDataToGraph(int resolution) {return osc->getDataToGraph(resolution);}
     juce::StringArray waveNames;
+    juce::Array<juce::File> waveFiles;
 private:
     std::unique_ptr<WavetableOsc> osc;
 };
