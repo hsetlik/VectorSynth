@@ -9,6 +9,7 @@
 */
 
 #include "WavetableComponent.h"
+/*
 WavetableDisplay::WavetableDisplay(std::vector<std::vector<float>> data, juce::Slider* s, float pos) :
 blank(std::make_unique<juce::Path>()),
 fake3d(true),
@@ -124,6 +125,39 @@ void WavetableDisplay::paint(juce::Graphics &g)
 void WavetableDisplay::sliderValueChanged(juce::Slider *s)
 {
     setPosition((float)s->getValue());
+    repaint();
+}
+ */
+void WavetableDisplay::paint(juce::Graphics &g)
+{
+    if(!setUpToDate)
+    {
+        pathGroup.reset(graphData.generatePaths((float)getWidth(), (float)getHeight()));
+        for(int i = 0; i < graphData.totalFrames; ++i)
+        {
+            auto& p = pathGroup->at(i);
+            alterFor3d(&p, (float)i);
+        }
+        setUpToDate = true;
+    }
+    if(!currentUpTpDate)
+    {
+        currentPath.reset(graphData.interpPath(position, (float)getWidth(), (float)getHeight()));
+        alterFor3d(*currentPath, position * graphData.totalFrames);
+        currentUpTpDate = true;
+    }
+}
+void WavetableDisplay::setValues(std::vector<std::vector<float>> nData)
+{
+    graphData.setData(nData);
+    setUpToDate = false;
+    currentUpTpDate = false;
+    updatePosition();
+}
+void WavetableDisplay::updatePosition()
+{
+    currentUpTpDate = false;
+    //TODO: set up the color vector in here
     repaint();
 }
 
