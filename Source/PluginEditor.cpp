@@ -14,6 +14,7 @@ WavetableSynthesizerAudioProcessorEditor::WavetableSynthesizerAudioProcessorEdit
     : AudioProcessorEditor (&p), audioProcessor (p), container(&audioProcessor.tree, &audioProcessor.osc)
 {
     addAndMakeVisible(&container);
+    container.assignWavFiles(audioProcessor.handler.wavFiles);
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (800, 600);

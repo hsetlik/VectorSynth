@@ -24,6 +24,7 @@ public:
     {
         panel.setBounds(0, 0, getWidth(), getHeight());
     }
+    void assignWavFiles(juce::Array<juce::File> arr) {panel.assignWavFiles(arr);}
 private:
     SoundSourcePanel panel;
 };

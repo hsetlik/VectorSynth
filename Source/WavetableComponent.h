@@ -90,7 +90,7 @@ private:
 class WaveSelector : public juce::Component, public juce::Button::Listener
 {
 public:
-    WaveSelector(WavetableOscHolder* o);
+    WaveSelector(WavetableOscHolder* o, juce::ComboBox::Listener* list);
     ~WaveSelector() {}
     void buttonClicked(juce::Button* b) override
     {
@@ -122,13 +122,19 @@ private:
     juce::StringArray tableNames;
 };
 
-class SoundSourcePanel : public juce::Component
+class SoundSourcePanel : public juce::Component, public juce::ComboBox::Listener
 {
 public:
     SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o);
     ~SoundSourcePanel() {}
     void resized() override;
+    void comboBoxChanged(juce::ComboBox* c) override;
+    void assignWavFiles(juce::Array<juce::File> arr)
+    {
+        wavFiles = arr;
+    }
 private:
+    juce::Array<juce::File> wavFiles;
     TablePositionSlider sPos;
     OscLevelSlider sLevel;
     DAHDSRPanel envPanel;
