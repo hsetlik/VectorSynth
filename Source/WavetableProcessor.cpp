@@ -84,8 +84,6 @@ void fft(int N, double *ar, double *ai)
 
 WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
 {
-    //Step 1: create a full size vector by linear interpolating the input data
-    std::vector<float> fullInput(TABLESIZE, 0.0f);
     auto inc = float(data.size() * (1.0f / TABLESIZE));
     float bottomSample, topSample, difference, skew, sample;
     double* freqWaveReal = new double[TABLESIZE];
@@ -98,7 +96,6 @@ WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), 
         difference = topSample - bottomSample;
         skew = pos - floor(pos);
         sample = bottomSample + (skew * difference);
-        fullInput[i] = sample;
         //setting up FFT arrays
         freqWaveImag[i] = (double)sample;
         freqWaveReal[i] = 0.0f;
@@ -152,7 +149,7 @@ int WavetableFrame::createTables(double *waveReal, double *waveImag, int numSamp
 }
 float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
 {
-    printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
+    //printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
     if(tablesAdded <= NUMTABLES)
     {
         tables.add(new WaveTable(numSamples, topFreq, waveImag));
@@ -173,7 +170,7 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
         {
             tables.getLast()->table[i] = waveImag[i] * scale;
         }
-        printf("Table #%d scale: %f\n", tablesAdded, scale);
+        //printf("Table #%d scale: %f\n", tablesAdded, scale);
         ++tablesAdded;
     }
     return (float)scale;

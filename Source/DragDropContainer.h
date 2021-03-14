@@ -15,7 +15,7 @@
 class DummyContainer : public juce::DragAndDropContainer, public juce::Component
 {
 public:
-    DummyContainer(juce::AudioProcessorValueTreeState* t,  WavetableOsc* o) : panel(this, t, o)
+    DummyContainer(juce::AudioProcessorValueTreeState* t,  WavetableOscHolder* o) : panel(this, t, o)
     {
         addAndMakeVisible(&panel);
     }
@@ -24,6 +24,7 @@ public:
     {
         panel.setBounds(0, 0, getWidth(), getHeight());
     }
+    void assignWavFiles(juce::Array<juce::File> arr) {panel.assignWavFiles(arr);}
 private:
     SoundSourcePanel panel;
 };

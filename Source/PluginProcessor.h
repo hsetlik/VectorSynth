@@ -57,13 +57,14 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     juce::AudioProcessorValueTreeState tree;
-private:
     AudioWavetableHandler handler;
+private:
+   
     double frequency;
     float lastSample;
     float position;
 public:
-    WavetableOsc osc;
+    WavetableOscHolder osc;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthesizerAudioProcessor)
 };

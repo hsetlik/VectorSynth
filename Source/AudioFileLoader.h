@@ -26,6 +26,7 @@ public:
     }
     juce::File getWav(juce::String name)
     {
+        printf("Handler asked for: '%s'\n", name.toRawUTF8());
         return wavFiles[tableNames.indexOf(name)];
     }
     juce::StringArray tableNames;

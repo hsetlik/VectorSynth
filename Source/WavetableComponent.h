@@ -130,7 +130,7 @@ private:
 class WaveSelector : public juce::Component, public juce::Button::Listener
 {
 public:
-    WaveSelector(WavetableOsc* o, juce::ComboBox::Listener* list);
+    WaveSelector(WavetableOscHolder* o, juce::ComboBox::Listener* list);
     ~WaveSelector() {}
     void buttonClicked(juce::Button* b) override
     {
@@ -155,7 +155,7 @@ public:
         waveBox.setBounds(2 * n, 0, 10 * n, h);
     }
 private:
-    WavetableOsc* osc;
+    WavetableOscHolder* osc;
     juce::ComboBox waveBox;
     ArrowButton lButton;
     ArrowButton rButton;
@@ -165,11 +165,16 @@ private:
 class SoundSourcePanel : public juce::Component, public juce::ComboBox::Listener
 {
 public:
-    SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOsc* o);
+    SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o);
     ~SoundSourcePanel() {}
     void resized() override;
     void comboBoxChanged(juce::ComboBox* c) override;
+    void assignWavFiles(juce::Array<juce::File> arr)
+    {
+        wavFiles = arr;
+    }
 private:
+    juce::Array<juce::File> wavFiles;
     TablePositionSlider sPos;
     OscLevelSlider sLevel;
     DAHDSRPanel envPanel;
@@ -177,7 +182,7 @@ private:
     WaveSelector selector;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
-    WavetableOsc* osc;
+    WavetableOscHolder* osc;
 };
 
 

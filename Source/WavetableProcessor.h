@@ -125,3 +125,27 @@ private:
     juce::OwnedArray<WavetableFrame, juce::CriticalSection> frames;
 };
 
+class WavetableOscHolder
+{
+public:
+    WavetableOscHolder(juce::File file) :
+    osc(std::make_unique<WavetableOsc>(file))
+    {
+        
+    }
+    void replaceFromFile(juce::File file)
+    {
+        osc.reset(new WavetableOsc(file));
+    }
+    void setPosition(float pos) {osc->setPosition(pos);}
+    void setSampleRate(double rate) {osc->setSampleRate(rate);}
+    float getSample(double freq)
+    {
+        return osc->getSample(freq);
+    }
+    std::vector<std::vector<float>> getDataToGraph(int resolution) {return osc->getDataToGraph(resolution);}
+    juce::StringArray waveNames;
+private:
+    std::unique_ptr<WavetableOsc> osc;
+};
+
