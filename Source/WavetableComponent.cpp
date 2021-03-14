@@ -130,6 +130,7 @@ void WavetableDisplay::sliderValueChanged(juce::Slider *s)
  */
 void WavetableDisplay::paint(juce::Graphics &g)
 {
+    g.fillAll(UXColor::darkBkgnd);
     if(!setUpToDate)
     {
         pathGroup.reset(graphData.generatePaths((float)getWidth(), (float)getHeight()));
@@ -142,9 +143,21 @@ void WavetableDisplay::paint(juce::Graphics &g)
     }
     if(!currentUpTpDate)
     {
-        currentPath.reset(graphData.interpPath(position, (float)getWidth(), (float)getHeight()));
-        alterFor3d(*currentPath, position * graphData.totalFrames);
+        currentPath.reset(graphData.interpPath(fPos, (float)getWidth(), (float)getHeight()));
+        alterFor3d(*currentPath, fPos);
         currentUpTpDate = true;
+    }
+    for(int i = graphData.totalFrames - 1; i > ceil(position * graphData.totalFrames); --i)
+    {
+        g.setColour(colorForIndex(i));
+        g.strokePath(pathGroup->at(i), stroke);
+    }
+    g.setColour(UXColor::highlight);
+    g.strokePath(*currentPath, stroke);
+    for(int i = ceil(position * graphData.totalFrames); i > 0; --i)
+    {
+        g.setColour(colorForIndex(i));
+        g.strokePath(pathGroup->at(i), stroke);
     }
 }
 void WavetableDisplay::setValues(std::vector<std::vector<float>> nData)
@@ -157,7 +170,7 @@ void WavetableDisplay::setValues(std::vector<std::vector<float>> nData)
 void WavetableDisplay::updatePosition()
 {
     currentUpTpDate = false;
-    //TODO: set up the color vector in here
+    fPos = position * graphData.totalFrames;
     repaint();
 }
 

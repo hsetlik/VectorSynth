@@ -84,12 +84,12 @@ struct WaveGraphDataset
     const int resolution = 128;
     const int max_frames = 32;
     int totalFrames;
-    WaveGraphDataset(std::vector<std::vector<float>> input) :
+    WaveGraphDataset(std::vector<std::vector<float>>& input) :
     rawData(std::make_unique<std::vector<std::vector<float>>>(max_frames, std::vector<float>(resolution, 0.0f)))
     {
         setData(input);
     }
-    void setData(std::vector<std::vector<float>> input)
+    void setData(std::vector<std::vector<float>>& input)
     {
         int oIncrement;
         if((int)input.size() <= max_frames)
@@ -133,6 +133,7 @@ struct WaveGraphDataset
             path.closeSubPath();
         }
         return vec;
+        //this function concludes OK and returns expected
     }
     juce::Path* interpPath(float position, float width, float height)
     {
@@ -166,13 +167,16 @@ class WavetableDisplay : public juce::Component, public juce::Slider::Listener
 {
 public:
     WavetableDisplay(std::vector<std::vector<float>> inData, juce::Slider* s) :
-    currentPath(std::make_unique<juce::Path>()),
     graphData(inData),
-    pathGroup(std::make_unique<std::vector<juce::Path>>(30, juce::Path()))
+    currentPath(std::make_unique<juce::Path>()),
+    pathGroup(std::make_unique<std::vector<juce::Path>>(30, juce::Path())),
+    stroke(3.0f)
     {
         setUpToDate = false;
         currentUpTpDate = false;
         fake3d = true;
+        fPos = position * graphData.totalFrames;
+        cExp = 0.75f;
     }
     void sliderValueChanged(juce::Slider* s) override
     {
@@ -199,17 +203,23 @@ public:
         auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (fBounds.getWidth() / 8), -(dY * index * 0.7f) +  (fBounds.getHeight() / 5)));
         p.applyTransform(t);
     }
+    juce::Colour colorForIndex(int index)
+    {
+        cCoeff = pow(fabs(index - fPos), cExp);
+        return Color::blendHSB(UXColor::highlight, UXColor::lightGray, cCoeff);
+    }
     void setValues(std::vector<std::vector<float>> nData);
     void updatePosition();
     void paint(juce::Graphics& g) override;
-    void resized() override;
 private:
     bool fake3d;
     bool setUpToDate, currentUpTpDate;
     float position;
-    std::unique_ptr<juce::Path> currentPath;
+    float cCoeff, delta, fPos, cExp;
     WaveGraphDataset graphData;
+    std::unique_ptr<juce::Path> currentPath;
     std::unique_ptr<std::vector<juce::Path>> pathGroup;
+    juce::PathStrokeType stroke;
 };
 
 class ArrowButton : public juce::ShapeButton
