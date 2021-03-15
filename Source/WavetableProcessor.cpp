@@ -85,7 +85,6 @@ void fft(int N, double *ar, double *ai)
 WavetableFrame::WavetableFrame(std::vector<float> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
 {
     lastMinFreq = 0.0f;
-    tables.ensureStorageAllocated(10); //with the current setup, every frame has 10 tables
     auto inc = float(data.size() / TABLESIZE);
     float bottomSample, topSample, difference, skew, sample;
     double pos;
@@ -113,7 +112,6 @@ WavetableFrame::WavetableFrame(std::vector<float> t) : pTables(new WaveTable [10
 WavetableFrame::WavetableFrame(std::array<float, TABLESIZE> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t.begin(), t.end()), position(0.0f), sampleRate(44100.0f)
 {
     lastMinFreq = 0.0f;
-    tables.ensureStorageAllocated(10); //with the current setup, every frame has 10 tables
     auto inc = float(data.size() / TABLESIZE);
     float bottomSample, topSample, difference, skew, sample;
     double pos;
@@ -185,7 +183,6 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
     //printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
     if(tablesAdded <= NUMTABLES)
     {
-        tables.add(new WaveTable(numSamples, bottomFreq, topFreq, waveImag));
         pTables[tablesAdded].maxFreq = topFreq;
         pTables[tablesAdded].minFreq = bottomFreq;
         fft(numSamples, waveReal, waveImag);
@@ -203,7 +200,6 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
         }
         for(int i = 0; i < numSamples; ++i)
         {
-            tables.getLast()->table[i] = waveImag[i] * scale;
             pTables[tablesAdded][i] = waveImag[i] * scale;
         }
         //printf("Table #%d scale: %f\n", tablesAdded, scale);
@@ -215,7 +211,7 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
 //note: this function looks like a mistake and I don't remember writing it or why it works but somehow it's the only version that does
 WaveTable* WavetableFrame::tableForFreq(double frequency)
 {
-    auto* out = tables[0];
+    auto* out = &pTables[0];
     int i;
     for(i = 0; i < tablesAdded; ++i)
     {
@@ -227,7 +223,7 @@ WaveTable* WavetableFrame::tableForFreq(double frequency)
      but breakpoint confirms that this if never evaluates true so whatever
     */
     if(out == NULL)
-        out = tables.getLast();
+        out = &pTables[9];
     return out;
 }
 

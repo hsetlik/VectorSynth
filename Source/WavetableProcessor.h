@@ -77,7 +77,6 @@ private:
     double lastMinFreq;
     int tablesAdded;
     std::vector<float> data; //the initial input data from which all the tables are made
-    juce::OwnedArray<WaveTable, juce::CriticalSection> tables; //array of tables
     float position;
     float posDelta;
     float output;
@@ -146,7 +145,6 @@ private:
     float output;
     double sampleRate;
     juce::OwnedArray<WavetableFrame, juce::CriticalSection> frames;
-    
 };
 
 class WavetableOscHolder
