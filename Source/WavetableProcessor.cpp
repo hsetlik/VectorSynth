@@ -82,16 +82,46 @@ void fft(int N, double *ar, double *ai)
     }
 }
 
-WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
+WavetableFrame::WavetableFrame(std::vector<float> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
 {
     lastMinFreq = 0.0f;
-    auto inc = float(data.size() * (1.0f / TABLESIZE));
+    tables.ensureStorageAllocated(10); //with the current setup, every frame has 10 tables
+    auto inc = float(data.size() / TABLESIZE);
     float bottomSample, topSample, difference, skew, sample;
+    double pos;
     double* freqWaveReal = new double[TABLESIZE];
     double* freqWaveImag = new double[TABLESIZE];
     for(int i = 0; i < TABLESIZE; ++i)
     {
-        auto pos = inc * i;
+        pos = inc * i;
+        bottomSample = data[floor(pos)];
+        topSample = data[ceil(pos)];
+        difference = topSample - bottomSample;
+        skew = pos - floor(pos);
+        sample = bottomSample + (skew * difference);
+        //setting up FFT arrays
+        freqWaveImag[i] = (double)sample;
+        freqWaveReal[i] = 0.0f;
+    }
+    //FFT time!!
+    fft(TABLESIZE, freqWaveReal, freqWaveImag);
+    createTables(freqWaveReal, freqWaveImag, TABLESIZE);
+    delete [] freqWaveReal;
+    delete [] freqWaveImag;
+}
+
+WavetableFrame::WavetableFrame(std::array<float, TABLESIZE> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t.begin(), t.end()), position(0.0f), sampleRate(44100.0f)
+{
+    lastMinFreq = 0.0f;
+    tables.ensureStorageAllocated(10); //with the current setup, every frame has 10 tables
+    auto inc = float(data.size() / TABLESIZE);
+    float bottomSample, topSample, difference, skew, sample;
+    double pos;
+    double* freqWaveReal = new double[TABLESIZE];
+    double* freqWaveImag = new double[TABLESIZE];
+    for(int i = 0; i < TABLESIZE; ++i)
+    {
+        pos = inc * i;
         bottomSample = data[floor(pos)];
         topSample = data[ceil(pos)];
         difference = topSample - bottomSample;
@@ -156,6 +186,8 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
     if(tablesAdded <= NUMTABLES)
     {
         tables.add(new WaveTable(numSamples, bottomFreq, topFreq, waveImag));
+        pTables[tablesAdded].maxFreq = topFreq;
+        pTables[tablesAdded].minFreq = bottomFreq;
         fft(numSamples, waveReal, waveImag);
         if (scale == 0.0f)
         {
@@ -172,6 +204,7 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
         for(int i = 0; i < numSamples; ++i)
         {
             tables.getLast()->table[i] = waveImag[i] * scale;
+            pTables[tablesAdded][i] = waveImag[i] * scale;
         }
         //printf("Table #%d scale: %f\n", tablesAdded, scale);
         ++tablesAdded;
@@ -186,8 +219,8 @@ WaveTable* WavetableFrame::tableForFreq(double frequency)
     int i;
     for(i = 0; i < tablesAdded; ++i)
     {
-        if(tables[i]->maxFreq < frequency && (i + 1) < tablesAdded)
-            out = tables[i + i];
+        if(pTables[i].maxFreq < frequency && (i + 1) < tablesAdded)
+            out = &pTables[i + i];
     }
     /*
      I'm r-word so I don't know why getting tables[i + i] doesn't break it,
@@ -221,7 +254,7 @@ std::vector<float> WavetableFrame::getBasicVector(int resolution)
     for(int sample = 0; sample < resolution; ++sample)
     {
         int idx = (int)inc *sample;
-        auto f = (float)tables[0]->table[idx]; //for purposes of graphing, always use the first table with the most harmonic detail
+        auto f = (float)pTables[0][idx]; //for purposes of graphing, always use the first table with the most harmonic detail
         out.push_back(f);
     }
     return out;
@@ -244,15 +277,14 @@ WavetableOsc::WavetableOsc(juce::File wavData)
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
     buffer.clear();
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
-    std::vector<float> vec;
+    std::array<float, TABLESIZE> fArray;
     for(int i = 0; i < sNumFrames; ++i)
     {
         for(int sample = 0; sample < TABLESIZE; ++sample)
         {
-            vec.push_back(buffer.getSample(0, sample));
+            fArray[sample] = buffer.getSample(0, sample);
         }
-        addFrame(vec);
-        vec.clear();
+        addFrame(fArray);
         buffer.clear();
         currentSample += TABLESIZE;
         //printf("Loaded frame %d from sample %ld\n", i, currentSample);

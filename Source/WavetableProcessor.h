@@ -19,10 +19,9 @@ const int fftOrder = 10;
 
 struct WaveTable
 {
-    WaveTable(int size, double fMin, double fMax, double* input) :  minFreq(fMin), maxFreq(fMax), length(size)
+    WaveTable(int size, double fMin, double fMax, double* input) : minFreq(fMin), maxFreq(fMax), length(size), table(new double [size])
     {
         double accum = 0.0f;
-        table = new double [size];
         for(int i = 0; i < length; ++i)
         {
             table[i] = input[i];
@@ -36,9 +35,21 @@ struct WaveTable
                 table[i] *= -1.0f;
         }
     }
+    //construct empty table of zeroes
+    WaveTable(int size=TABLESIZE, double fMin=0.0f, double fMax=0.0f) : minFreq(fMin), maxFreq(fMax), length(size), table(new double [size])
+    {
+        for(int i = 0; i < length; ++i)
+        {
+            table[i] = 0.0f;
+        }
+    }
     ~WaveTable()
     {
         delete [] table;
+    }
+    double& operator [] (int idx)
+    {
+        return table[idx];
     }
     double minFreq;
     double maxFreq; //max frequency this table can use before aliasing
@@ -50,7 +61,8 @@ class WavetableFrame
 {
 public:
     WavetableFrame(std::vector<float> t);
-    ~WavetableFrame() {}
+    WavetableFrame(std::array<float, TABLESIZE> t);
+    ~WavetableFrame(){}
     void setSampleRate(double rate)
     {
         sampleRate = rate;
@@ -61,6 +73,7 @@ public:
     WaveTable* tableForFreq(double frequency);
     std::vector<float> getBasicVector(int resolution);
 private:
+    WaveTable* pTables;
     double lastMinFreq;
     int tablesAdded;
     std::vector<float> data; //the initial input data from which all the tables are made
@@ -87,6 +100,11 @@ public:
     WavetableOsc(juce::File wavData);
     ~WavetableOsc() {}
     void addFrame(std::vector<float> d)
+    {
+        frames.add(new WavetableFrame(d));
+        ++numFrames;
+    }
+    void addFrame(std::array<float, TABLESIZE> d)
     {
         frames.add(new WavetableFrame(d));
         ++numFrames;
@@ -128,6 +146,7 @@ private:
     float output;
     double sampleRate;
     juce::OwnedArray<WavetableFrame, juce::CriticalSection> frames;
+    
 };
 
 class WavetableOscHolder
