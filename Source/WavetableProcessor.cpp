@@ -129,7 +129,6 @@ WavetableFrame::WavetableFrame(std::array<float, TABLESIZE> t) : pTables(new Wav
         freqWaveImag[i] = (double)sample;
         freqWaveReal[i] = 0.0f;
     }
-    //FFT time!!
     fft(TABLESIZE, freqWaveReal, freqWaveImag);
     createTables(freqWaveReal, freqWaveImag, TABLESIZE);
     delete [] freqWaveReal;
@@ -208,9 +207,12 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
     return (float)scale;
 }
 
+
+//TODO: there seriously must be a better way to do this
 //note: this function looks like a mistake and I don't remember writing it or why it works but somehow it's the only version that does
 WaveTable* WavetableFrame::tableForFreq(double frequency)
 {
+    /*
     auto* out = &pTables[0];
     int i;
     for(i = 0; i < tablesAdded; ++i)
@@ -218,13 +220,14 @@ WaveTable* WavetableFrame::tableForFreq(double frequency)
         if(pTables[i].maxFreq < frequency && (i + 1) < tablesAdded)
             out = &pTables[i + i];
     }
-    /*
      I'm r-word so I don't know why getting tables[i + i] doesn't break it,
      but breakpoint confirms that this if never evaluates true so whatever
-    */
     if(out == NULL)
         out = &pTables[9];
     return out;
+    */
+    return &pTables[0];
+    
 }
 
 float WavetableFrame::getSample(double frequency)
@@ -236,7 +239,7 @@ float WavetableFrame::getSample(double frequency)
     {
         position -= 1.0f;
     }
-    bottomSampleIndex = floor(table->length * position);
+    bottomSampleIndex = (int)(table->length * position);
     skew = (table->length * position) - bottomSampleIndex;
     sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
@@ -246,7 +249,7 @@ float WavetableFrame::getSample(double frequency)
 std::vector<float> WavetableFrame::getBasicVector(int resolution)
 {
     std::vector<float> out;
-    auto inc = floor(TABLESIZE / resolution);
+    auto inc = (int)(TABLESIZE / resolution);
     for(int sample = 0; sample < resolution; ++sample)
     {
         int idx = (int)inc *sample;
@@ -264,27 +267,23 @@ WavetableOsc::WavetableOsc(juce::File wavData)
     juce::AudioFormatManager manager;
     manager.registerBasicFormats();
     auto reader = manager.createReaderFor(wavData);
-    //printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
     auto numSamples = reader->lengthInSamples;
-    int sNumFrames = floor(numSamples / TABLESIZE);
-    frames.ensureStorageAllocated(sNumFrames);
+    auto sNumFrames = (int)(numSamples / TABLESIZE);
     long currentSample = 0;
-    //printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
     buffer.clear();
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     std::array<float, TABLESIZE> fArray;
-    for(int i = 0; i < sNumFrames; ++i)
+    for(int i = 0; i < sNumFrames; ++i) //assign the values from each frame
     {
         for(int sample = 0; sample < TABLESIZE; ++sample)
         {
-            fArray[sample] = buffer.getSample(0, sample);
+            fArray[sample] = buffer.getSample(0, sample); //transfer each sample into fArray
         }
-        addFrame(fArray);
+        addFrame(fArray); //create a frame from fArray
         buffer.clear();
-        currentSample += TABLESIZE;
-        //printf("Loaded frame %d from sample %ld\n", i, currentSample);
-        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
+        currentSample += TABLESIZE; //increment the read position by one frame length
+        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true); //fill the buffer with the next frame's info
     }
     delete reader;
 }

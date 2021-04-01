@@ -153,7 +153,7 @@ public:
     WavetableOscHolder(juce::File file) :
     osc(std::make_unique<WavetableOsc>(file))
     {
-        
+        printf("Oscillator created\n");
     }
     void replaceFromFile(juce::File file)
     {

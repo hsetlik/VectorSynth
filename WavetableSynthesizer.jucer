@@ -21,8 +21,6 @@
               file="Source/EnvelopeComponent.h"/>
         <FILE id="DOwBR9" name="SliderTypes.cpp" compile="1" resource="0" file="Source/SliderTypes.cpp"/>
         <FILE id="FyYTiC" name="SliderTypes.h" compile="0" resource="0" file="Source/SliderTypes.h"/>
-        <FILE id="P0iVhw" name="SourcePanel.cpp" compile="1" resource="0" file="Source/SourcePanel.cpp"/>
-        <FILE id="Zbcb4y" name="SourcePanel.h" compile="0" resource="0" file="Source/SourcePanel.h"/>
         <FILE id="DHpJf5" name="VectorField.cpp" compile="1" resource="0" file="Source/VectorField.cpp"/>
         <FILE id="VOqYAU" name="VectorField.h" compile="0" resource="0" file="Source/VectorField.h"/>
         <FILE id="mojkiG" name="WavetableComponent.cpp" compile="1" resource="0"
@@ -76,7 +74,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="WavetableSynthesizer"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="WavetableSynthesizer" optimisation="5"
+                       linkTimeOptimisation="1"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="WavetableSynthesizer"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

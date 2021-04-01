@@ -55,6 +55,7 @@ void WavetableDisplay::setPosition(float pos)
 
 void WavetableDisplay::paint(juce::Graphics &g)
 {
+    /*
     int lowerIdx = floor(position * (numTraces - 1) * 0.99f);
     auto strokeType = juce::PathStrokeType(2.0f);
     g.setColour(background);
@@ -63,7 +64,6 @@ void WavetableDisplay::paint(juce::Graphics &g)
     auto y0 = fBounds.getHeight() / 2.0f;
     auto amplitude = y0 * 0.75f;
     auto dX = fBounds.getWidth() / resolution;
-    bool currentFinished = false;
     if(numTraces >= 1)
     {
         if(fake3d)
@@ -96,7 +96,6 @@ void WavetableDisplay::paint(juce::Graphics &g)
                     alterFor3d(&current, position * (numTraces - 1));
                     g.setColour(highlight);
                     g.strokePath(current, strokeType);
-                    currentFinished = true;
                 }
             }
         }
@@ -116,6 +115,7 @@ void WavetableDisplay::paint(juce::Graphics &g)
             g.strokePath(current, strokeType);
         }
     }
+     */
 }
 
 void WavetableDisplay::sliderValueChanged(juce::Slider *s)
