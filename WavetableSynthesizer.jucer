@@ -74,8 +74,7 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="WavetableSynthesizer" optimisation="5"
-                       linkTimeOptimisation="1"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="WavetableSynthesizer" linkTimeOptimisation="1"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="WavetableSynthesizer"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

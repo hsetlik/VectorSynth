@@ -196,12 +196,30 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
                     max = temp;
             }
             scale = 1.0f / max * 0.999f;
+            printf("Table: %d has scale: %f\n", tablesAdded, scale);
         }
+        auto minLevel = std::numeric_limits<float>::max();
+        auto maxLevel = std::numeric_limits<float>::min();
         for(int i = 0; i < numSamples; ++i)
         {
             pTables[tablesAdded][i] = waveImag[i] * scale;
+            if(pTables[tablesAdded][i] < minLevel)
+                minLevel = pTables[tablesAdded][i];
+            if(pTables[tablesAdded][i] > maxLevel)
+                maxLevel = pTables[tablesAdded][i];
         }
-        //printf("Table #%d scale: %f\n", tablesAdded, scale);
+        auto offset = maxLevel + minLevel;
+        minLevel = std::numeric_limits<float>::max();
+        maxLevel = std::numeric_limits<float>::min();
+        for(int i = 0; i < numSamples; ++i)
+        {
+            pTables[tablesAdded][i] -= (offset / 2.0f); //make sure each table has no DC offset
+            if(pTables[tablesAdded][i] < minLevel)
+                minLevel = pTables[tablesAdded][i];
+            if(pTables[tablesAdded][i] > maxLevel)
+                maxLevel = pTables[tablesAdded][i];
+        }
+        //printf("Table: %d has range: %f, %f and offset: %f\n", tablesAdded, maxLevel, minLevel, offset);
         ++tablesAdded;
     }
     return (float)scale;
@@ -272,6 +290,8 @@ WavetableOsc::WavetableOsc(juce::File wavData)
     long currentSample = 0;
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
     buffer.clear();
+    const char* str = wavData.getFileName().toRawUTF8();
+    printf("File %s has %d frames\n", str, sNumFrames);
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     std::array<float, TABLESIZE> fArray;
     for(int i = 0; i < sNumFrames; ++i) //assign the values from each frame
