@@ -51,6 +51,20 @@ struct WaveTable
     {
         return table[idx];
     }
+    void normalize(float amp=1.0f)
+    {
+        auto maxLevel = std::numeric_limits<float>::min();
+        auto minLevel = std::numeric_limits<float>::max();
+        for(int i = 0; i < length; ++i)
+        {
+            if(table[i] < minLevel)
+                minLevel = table[i];
+            if(table[i] > maxLevel)
+                maxLevel = table[i];
+        }
+        for(int i = 0; i < length; ++i)
+            table[i] /= (fabs(maxLevel) + fabs(minLevel)) / 2.0f;
+    }
     double minFreq;
     double maxFreq; //max frequency this table can use before aliasing
     int length; //number of samples
@@ -60,8 +74,9 @@ struct WaveTable
 class WavetableFrame
 {
 public:
-    WavetableFrame(std::vector<float> t);
+    WavetableFrame(std::vector<float> t=std::vector<float>(TABLESIZE, 0.0f));
     WavetableFrame(std::array<float, TABLESIZE> t);
+    WavetableFrame(float* t, int length);
     ~WavetableFrame(){}
     void setSampleRate(double rate)
     {
@@ -74,6 +89,7 @@ public:
     std::vector<float> getBasicVector(int resolution);
 private:
     WaveTable* pTables;
+    WaveTable* rawTable;
     double lastMinFreq;
     int tablesAdded;
     std::vector<float> data; //the initial input data from which all the tables are made
@@ -94,39 +110,36 @@ public:
         sampleRate = 44100.0f;
         position = 0.0f;
         numFrames = 0;
-        addFrame(firstFrameData);
     }
     WavetableOsc(juce::File wavData);
     ~WavetableOsc() {}
-    void addFrame(std::vector<float> d)
-    {
-        frames.add(new WavetableFrame(d));
-        ++numFrames;
-    }
-    void addFrame(std::array<float, TABLESIZE> d)
-    {
-        frames.add(new WavetableFrame(d));
-        ++numFrames;
-    }
     void setSampleRate(double newRate)
     {
         sampleRate = newRate;
-        for(auto& i : frames)
-            i->setSampleRate(sampleRate);
+        for(int i = 0; i < numFrames; ++i)
+        {
+            aFrames[i].setSampleRate(sampleRate);
+        }
     }
-    void setPosition(float p) {position = p;}
+    void setPosition(float p)
+    {
+        position = p;
+        pFrame = position * (numFrames - 1);
+        lowerIndex = floor(pFrame);
+        printf("Position is at table: %d\n", lowerIndex);
+    }
     float getSample(double freq)
     {
         if(numFrames < 2)
-            output = frames[0]->getSample(freq);
+            output = aFrames[0].getSample(freq);
         else
         {
             pFrame = position * (numFrames - 1);
-            skew = pFrame - floor(pFrame);
             lowerIndex = floor(pFrame);
+            skew = pFrame - lowerIndex;
             upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
-            bSample = frames[lowerIndex]->getSample(freq);
-            tSample = frames[upperIndex]->getSample(freq);
+            bSample = aFrames[lowerIndex].getSample(freq);
+            tSample = aFrames[upperIndex].getSample(freq);
             output = bSample + ((tSample - bSample) * skew);
         }
         return output;
@@ -144,7 +157,7 @@ private:
     float bSample;
     float output;
     double sampleRate;
-    juce::OwnedArray<WavetableFrame, juce::CriticalSection> frames;
+    WavetableFrame* aFrames;
 };
 
 class WavetableOscHolder

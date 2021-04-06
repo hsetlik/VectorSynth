@@ -145,8 +145,11 @@ void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>&
 {
     buffer.clear();
     frequency = (double)*tree.getRawParameterValue("frequency");
-    position = *tree.getRawParameterValue("wavetablePos");
-    osc.setPosition(position);
+    if(*tree.getRawParameterValue("wavetablePos") != position)
+    {
+        position = *tree.getRawParameterValue("wavetablePos");
+        osc.setPosition(position);
+    }
         for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
             lastSample = osc.getSample(frequency);
