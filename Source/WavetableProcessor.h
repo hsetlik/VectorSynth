@@ -19,7 +19,7 @@ const int fftOrder = 10;
 
 struct WaveTable
 {
-    WaveTable(int size, double fMin, double fMax, double* input) : minFreq(fMin), maxFreq(fMax), length(size), table(new double [size])
+    WaveTable(int size, double fMin, double fMax, double* input) : minFreq(fMin), maxFreq(fMax), length(size), table(new float [size])
     {
         double accum = 0.0f;
         for(int i = 0; i < length; ++i)
@@ -36,7 +36,7 @@ struct WaveTable
         }
     }
     //construct empty table of zeroes
-    WaveTable(int size=TABLESIZE, double fMin=0.0f, double fMax=0.0f) : minFreq(fMin), maxFreq(fMax), length(size), table(new double [size])
+    WaveTable(int size=TABLESIZE, double fMin=0.0f, double fMax=0.0f) : minFreq(fMin), maxFreq(fMax), length(size), table(new float [size])
     {
         for(int i = 0; i < length; ++i)
         {
@@ -47,7 +47,7 @@ struct WaveTable
     {
         delete [] table;
     }
-    double& operator [] (int idx)
+    float& operator [] (int idx)
     {
         return table[idx];
     }
@@ -65,10 +65,24 @@ struct WaveTable
         for(int i = 0; i < length; ++i)
             table[i] /= (fabs(maxLevel) + fabs(minLevel)) / 2.0f;
     }
+    void makeDerivative()
+    {
+        dTable = new float[length];
+        auto dX = juce::MathConstants<double>::twoPi / length;
+        float aSample, bSample, rise;
+        for(int i = 0; i < length; ++i)
+        {
+            aSample = table[i];
+            bSample = (i < length - 1) ? table[i + 1] : table[0];
+            rise = bSample - aSample;
+            dTable[i] = rise / dX;
+        }
+    }
     double minFreq;
     double maxFreq; //max frequency this table can use before aliasing
     int length; //number of samples
-    double* table;
+    float* table;
+    float* dTable;
 };
 
 class WavetableFrame
@@ -108,7 +122,7 @@ public:
     WavetableOsc(std::vector<float> firstFrameData)
     {
         sampleRate = 44100.0f;
-        position = 0.0f;
+        currentPosition = 0.0f;
         numFrames = 0;
     }
     WavetableOsc(juce::File wavData);
@@ -118,38 +132,55 @@ public:
         sampleRate = newRate;
         for(int i = 0; i < numFrames; ++i)
         {
-            aFrames[i].setSampleRate(sampleRate);
+            frames[i].setSampleRate(sampleRate);
         }
     }
     void setPosition(float p)
     {
-        position = p;
-        pFrame = position * (numFrames - 1);
-        lowerIndex = floor(pFrame);
-        printf("Position is at table: %d\n", lowerIndex);
+        targetPosition = p;
+        maxSamplePosDelta = 3.0f / sampleRate;
+        if(currentPosition > targetPosition)
+            posDeltaSign = -1.0f;
+        else
+            posDeltaSign = 1.0f;
+    }
+    static float clamp(float input, float amplitude)
+    {
+        if(input < (-1.0f * amplitude))
+            return -1.0f * amplitude;
+        if(input > amplitude)
+            return amplitude;
+        return input;
     }
     float getSample(double freq)
     {
         if(numFrames < 2)
-            output = aFrames[0].getSample(freq);
+            output = frames[0].getSample(freq);
         else
         {
-            pFrame = position * (numFrames - 1);
+            if(fabs(targetPosition - currentPosition) > maxSamplePosDelta)
+                currentPosition = currentPosition + (maxSamplePosDelta * posDeltaSign);
+            else
+                currentPosition = targetPosition;
+            pFrame = currentPosition * (numFrames - 1);
             lowerIndex = floor(pFrame);
             skew = pFrame - lowerIndex;
             upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
-            bSample = aFrames[lowerIndex].getSample(freq);
-            tSample = aFrames[upperIndex].getSample(freq);
+            bSample = frames[lowerIndex].getSample(freq);
+            tSample = frames[upperIndex].getSample(freq);
             output = bSample + ((tSample - bSample) * skew);
         }
-        return output;
+        return clamp(output, 1.0f);
     }
     std::vector<std::vector<float>> getDataToGraph(int resolution);
     juce::StringArray waveNames;
+    float currentPosition;
 private:
     int lowerIndex;
     int upperIndex;
-    float position;
+    float targetPosition;
+    float maxSamplePosDelta; //maximum change to the position value per sample period
+    float posDeltaSign;
     float pFrame;
     int numFrames;
     float skew;
@@ -157,7 +188,7 @@ private:
     float bSample;
     float output;
     double sampleRate;
-    WavetableFrame* aFrames;
+    WavetableFrame* frames;
 };
 
 class WavetableOscHolder
@@ -181,6 +212,7 @@ public:
     std::vector<std::vector<float>> getDataToGraph(int resolution) {return osc->getDataToGraph(resolution);}
     juce::StringArray waveNames;
     juce::Array<juce::File> waveFiles;
+    float getPosition() {return osc->currentPosition;}
 private:
     std::unique_ptr<WavetableOsc> osc;
 };

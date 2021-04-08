@@ -204,7 +204,7 @@ int WavetableFrame::createTables(double *waveReal, double *waveImag, int numSamp
     }
     delete [] ar;
     delete [] ai;
-    printf("%d total wavetables\n", numTables);
+    //printf("%d total wavetables\n", numTables);
     return numTables;
 }
 float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double bottomFreq, double topFreq)
@@ -226,7 +226,7 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
                     max = temp;
             }
             scale = 1.0f / max * 0.999f;
-            printf("Table: %d has scale: %f\n", tablesAdded, scale);
+            //printf("Table: %d has scale: %f\n", tablesAdded, scale);
         }
         auto minLevel = std::numeric_limits<float>::max();
         auto maxLevel = std::numeric_limits<float>::min();
@@ -249,31 +249,18 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
             if(pTables[tablesAdded][i] > maxLevel)
                 maxLevel = pTables[tablesAdded][i];
         }
-        printf("Table: %d has range: %f, %f and offset: %f\n", tablesAdded, maxLevel, minLevel, offset);
+        pTables[tablesAdded].normalize(); //TODO: determine whether this is a good idea
         ++tablesAdded;
     }
     return (float)scale;
 }
-
-
-//TODO: there seriously must be a better way to do this
-//note: this function looks like a mistake and I don't remember writing it or why it works but somehow it's the only version that does
 WaveTable* WavetableFrame::tableForFreq(double frequency)
 {
-    /*
-    auto* out = &pTables[0];
-    int i;
-    for(i = 0; i < tablesAdded; ++i)
+    for(int i = 0; i < tablesAdded; ++i)
     {
-        if(pTables[i].maxFreq < frequency && (i + 1) < tablesAdded)
-            out = &pTables[i + i];
+        if(frequency < pTables[i].maxFreq && frequency <= pTables[i].minFreq)
+            return &pTables[i];
     }
-     I'm r-word so I don't know why getting tables[i + i] doesn't break it,
-     but breakpoint confirms that this if never evaluates true so whatever
-    if(out == NULL)
-        out = &pTables[9];
-    return out;
-    */
     return &pTables[0];
 }
 
@@ -309,7 +296,7 @@ std::vector<float> WavetableFrame::getBasicVector(int resolution)
 WavetableOsc::WavetableOsc(juce::File wavData)
 {
     sampleRate = 44100.0f;
-    position = 0.0f;
+    currentPosition = 0.0f;
     numFrames = 0;
     auto manager = new juce::AudioFormatManager();
     manager->registerBasicFormats();
@@ -322,7 +309,7 @@ WavetableOsc::WavetableOsc(juce::File wavData)
     const char* str = wavData.getFileName().toRawUTF8();
     printf("File %s has %d frames\n", str, sNumFrames);
     //NOTE: this is calling the default constructor, each table's data will have to be set appropriately
-    aFrames = new WavetableFrame[sNumFrames];
+    frames = new WavetableFrame[sNumFrames];
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
     std::array<float, TABLESIZE> fArray;
     for(int i = 0; i < sNumFrames; ++i) //assign the values from each frame
@@ -331,7 +318,7 @@ WavetableOsc::WavetableOsc(juce::File wavData)
         {
             fArray[sample] = buffer.getSample(0, sample); //transfer each sample into fArray
         }
-        aFrames[i] = WavetableFrame(fArray);
+        frames[i] = WavetableFrame(fArray);
         ++numFrames;
         buffer.clear();
         currentSample += TABLESIZE; //increment the read position by one frame length
@@ -346,7 +333,7 @@ std::vector<std::vector<float>> WavetableOsc::getDataToGraph(int resolution)
     std::vector<std::vector<float>> out;
     for(int frame = 0; frame < numFrames; ++frame)
     {
-        out.push_back(aFrames[frame].getBasicVector(resolution));
+        out.push_back(frames[frame].getBasicVector(resolution));
     }
     return out;
 }

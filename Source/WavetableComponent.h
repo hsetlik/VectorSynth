@@ -138,7 +138,7 @@ private:
     TablePositionSlider sPos;
     OscLevelSlider sLevel;
     DAHDSRPanel envPanel;
-    WavetableDisplay waveGraph;
+    std::unique_ptr<WavetableDisplay> pWaveDisplay;
     WaveSelector selector;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;

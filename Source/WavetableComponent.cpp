@@ -55,7 +55,6 @@ void WavetableDisplay::setPosition(float pos)
 
 void WavetableDisplay::paint(juce::Graphics &g)
 {
-    /*
     int lowerIdx = floor(position * (numTraces - 1) * 0.99f);
     auto strokeType = juce::PathStrokeType(2.0f);
     g.setColour(background);
@@ -115,7 +114,6 @@ void WavetableDisplay::paint(juce::Graphics &g)
             g.strokePath(current, strokeType);
         }
     }
-     */
 }
 
 void WavetableDisplay::sliderValueChanged(juce::Slider *s)
@@ -138,14 +136,15 @@ SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioPro
 sPos(c, 0),
 sLevel(c, 0),
 envPanel(c),
-waveGraph(o->getDataToGraph(128), &sPos.mTarget),
+//waveGraph(o->getDataToGraph(128), &sPos.mTarget),
+pWaveDisplay(std::make_unique<WavetableDisplay>(o->getDataToGraph(128), &sPos.mTarget)),
 selector(o, this),
 osc(o)
 {
     addAndMakeVisible(sPos);
     addAndMakeVisible(sLevel);
     addAndMakeVisible(envPanel);
-    addAndMakeVisible(waveGraph);
+    addAndMakeVisible(*pWaveDisplay);
     addAndMakeVisible(selector);
     
     freqAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "frequency", sLevel.mTarget));
@@ -156,7 +155,7 @@ void SoundSourcePanel::resized()
 {
     auto dX = getWidth() / 12;
     auto dY = getHeight() / 12;
-    waveGraph.setBounds(dX / 5, dY / 5, 4.5 * dX, 4.5 * dY);
+    pWaveDisplay->setBounds(dX / 5, dY / 5, 4.5 * dX, 4.5 * dY);
     selector.setBounds(dX * 5, dY / 3, dX * 6.5, dY / 2);
     envPanel.setBounds(dX / 5, 5 * dY, 8 * dX, 7 * dY);
     sLevel.setBounds(8 * dX, 2 * dY, 2.5f * dY, 2.5f * dY);
@@ -169,6 +168,10 @@ void SoundSourcePanel::comboBoxChanged(juce::ComboBox *c)
     {
         auto idx = c->getSelectedItemIndex();
         osc->replaceFromFile(wavFiles[idx]);
+        pWaveDisplay.reset(new WavetableDisplay(osc->getDataToGraph(128), &sPos.mTarget));
+        pWaveDisplay->setPosition(osc->getPosition());
+        addAndMakeVisible(*pWaveDisplay);
+        resized();
     }
 }
 
