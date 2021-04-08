@@ -22,6 +22,10 @@ public:
     void paint(juce::Graphics& g) override;
     void setPosition(float pos); //recalculate colors in here;
     void sliderValueChanged(juce::Slider* s) override;
+    void removeListener()
+    {
+        sourceSlider->removeListener(this);
+    }
     void alterFor3d(juce::Path* p, float index)
     {
         auto fBounds = getBounds().toFloat();
@@ -43,6 +47,7 @@ private:
     int numTraces;
     std::vector<std::vector<float>> valueSet;
     float position;
+    juce::Slider* sourceSlider;
     juce::Colour background;
     juce::OwnedArray<juce::Path> traces;
     juce::Colour highlight;

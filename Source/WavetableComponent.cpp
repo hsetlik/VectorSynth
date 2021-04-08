@@ -16,7 +16,8 @@ position(pos),
 highlight(UXColor::highlight),
 currentValues(128, 0.0f)
 {
-    s->addListener(this);
+    sourceSlider = s;
+    sourceSlider->addListener(this);
     background = UXColor::darkBkgnd;
     numTraces = 0;
     resolution = 128;
@@ -168,6 +169,7 @@ void SoundSourcePanel::comboBoxChanged(juce::ComboBox *c)
     {
         auto idx = c->getSelectedItemIndex();
         osc->replaceFromFile(wavFiles[idx]);
+        pWaveDisplay->removeListener();
         pWaveDisplay.reset(new WavetableDisplay(osc->getDataToGraph(128), &sPos.mTarget));
         pWaveDisplay->setPosition(osc->getPosition());
         addAndMakeVisible(*pWaveDisplay);
