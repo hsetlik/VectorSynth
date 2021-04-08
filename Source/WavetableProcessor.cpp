@@ -62,7 +62,7 @@ void fft(int N, double *ar, double *ai)
         Ur = 1.0f;
         Ui = 0.0f;
         Wr = cos(M_PI/(float)LE1);
-        Wi = -sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here //Nigel Redmon used -sin, I switched for a bit better sound
+        Wi = sin(M_PI/(float)LE1); // Cooley, Lewis, and Welch have "+" here
         for (j = 1; j <= LE1; j++)
         {
             for (i = j; i <= N; i += LE)
@@ -82,15 +82,17 @@ void fft(int N, double *ar, double *ai)
     }
 }
 
-WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
+WavetableFrame::WavetableFrame(std::vector<float> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
 {
-    auto inc = float(data.size() * (1.0f / TABLESIZE));
+    lastMinFreq = 0.0f;
+    auto inc = float(data.size() / TABLESIZE);
     float bottomSample, topSample, difference, skew, sample;
+    double pos;
     double* freqWaveReal = new double[TABLESIZE];
     double* freqWaveImag = new double[TABLESIZE];
     for(int i = 0; i < TABLESIZE; ++i)
     {
-        auto pos = inc * i;
+        pos = inc * i;
         bottomSample = data[floor(pos)];
         topSample = data[ceil(pos)];
         difference = topSample - bottomSample;
@@ -101,6 +103,62 @@ WavetableFrame::WavetableFrame(std::vector<float> t) : tablesAdded(0), data(t), 
         freqWaveReal[i] = 0.0f;
     }
     //FFT time!!
+    fft(TABLESIZE, freqWaveReal, freqWaveImag);
+    createTables(freqWaveReal, freqWaveImag, TABLESIZE);
+    delete [] freqWaveReal;
+    delete [] freqWaveImag;
+}
+
+WavetableFrame::WavetableFrame(std::array<float, TABLESIZE> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t.begin(), t.end()), position(0.0f), sampleRate(44100.0f)
+{
+    lastMinFreq = 0.0f;
+    auto inc = float(data.size() / TABLESIZE);
+    float bottomSample, topSample, difference, skew, sample;
+    double pos = 0.0f;
+    double* freqWaveReal = new double[TABLESIZE];
+    double* freqWaveImag = new double[TABLESIZE];
+    for(int i = 0; i < TABLESIZE; ++i)
+    {
+        pos = inc * i;
+        bottomSample = data[floor(pos)];
+        topSample = data[ceil(pos)];
+        difference = topSample - bottomSample;
+        skew = pos - floor(pos);
+        sample = bottomSample + (skew * difference);
+        //setting up FFT arrays
+        freqWaveImag[i] = (double)sample;
+        freqWaveReal[i] = 0.0f;
+    }
+    fft(TABLESIZE, freqWaveReal, freqWaveImag);
+    createTables(freqWaveReal, freqWaveImag, TABLESIZE);
+    delete [] freqWaveReal;
+    delete [] freqWaveImag;
+}
+
+WavetableFrame::WavetableFrame(float* t, int length) : pTables(new WaveTable [10]), tablesAdded(0), position(0.0f), sampleRate(44100.0f)
+{
+    for(int i = 0; i < length; ++i)
+    {
+        data.push_back(t[i]);
+    }
+    lastMinFreq = 0.0f;
+    auto inc = float(data.size() / TABLESIZE);
+    float bottomSample, topSample, difference, skew, sample;
+    double pos = 0.0f;
+    double* freqWaveReal = new double[TABLESIZE];
+    double* freqWaveImag = new double[TABLESIZE];
+    for(int i = 0; i < TABLESIZE; ++i)
+    {
+        pos = inc * i;
+        bottomSample = data[floor(pos)];
+        topSample = data[ceil(pos)];
+        difference = topSample - bottomSample;
+        skew = pos - floor(pos);
+        sample = bottomSample + (skew * difference);
+        //setting up FFT arrays
+        freqWaveImag[i] = (double)sample;
+        freqWaveReal[i] = 0.0f;
+    }
     fft(TABLESIZE, freqWaveReal, freqWaveImag);
     createTables(freqWaveReal, freqWaveImag, TABLESIZE);
     delete [] freqWaveReal;
@@ -136,23 +194,26 @@ int WavetableFrame::createTables(double *waveReal, double *waveImag, int numSamp
             ai[numSamples - idx] = waveImag[numSamples - idx];
         }
         // make the wavetable
-        scale = makeTable(ar, ai, numSamples, scale, topFreq);
+        scale = makeTable(ar, ai, numSamples, scale, lastMinFreq, topFreq);
         numTables++;
 
         // prepare for next table, topFreq *= 2 because we're using 1 waveTable per octave
+        lastMinFreq = topFreq;
         topFreq *= 2.0f;
         maxHarmonic >>= 1;
     }
     delete [] ar;
     delete [] ai;
+    //printf("%d total wavetables\n", numTables);
     return numTables;
 }
-float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double topFreq)
+float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSamples, double scale, double bottomFreq, double topFreq)
 {
     //printf("Table #%d limit: %lf\n", tablesAdded, topFreq * sampleRate);
     if(tablesAdded <= NUMTABLES)
     {
-        tables.add(new WaveTable(numSamples, topFreq, waveImag));
+        pTables[tablesAdded].maxFreq = topFreq;
+        pTables[tablesAdded].minFreq = bottomFreq;
         fft(numSamples, waveReal, waveImag);
         if (scale == 0.0f)
         {
@@ -165,34 +226,42 @@ float WavetableFrame::makeTable(double *waveReal, double *waveImag, int numSampl
                     max = temp;
             }
             scale = 1.0f / max * 0.999f;
+            //printf("Table: %d has scale: %f\n", tablesAdded, scale);
         }
+        auto minLevel = std::numeric_limits<float>::max();
+        auto maxLevel = std::numeric_limits<float>::min();
         for(int i = 0; i < numSamples; ++i)
         {
-            tables.getLast()->table[i] = waveImag[i] * scale;
+            pTables[tablesAdded][i] = waveImag[i] * scale;
+            if(pTables[tablesAdded][i] < minLevel)
+                minLevel = pTables[tablesAdded][i];
+            if(pTables[tablesAdded][i] > maxLevel)
+                maxLevel = pTables[tablesAdded][i];
         }
-        //printf("Table #%d scale: %f\n", tablesAdded, scale);
+        auto offset = maxLevel + minLevel;
+        minLevel = std::numeric_limits<float>::max();
+        maxLevel = std::numeric_limits<float>::min();
+        for(int i = 0; i < numSamples; ++i)
+        {
+            pTables[tablesAdded][i] -= (offset / 2.0f); //make sure each table has no DC offset
+            if(pTables[tablesAdded][i] < minLevel)
+                minLevel = pTables[tablesAdded][i];
+            if(pTables[tablesAdded][i] > maxLevel)
+                maxLevel = pTables[tablesAdded][i];
+        }
+        pTables[tablesAdded].normalize(); //TODO: determine whether this is a good idea
         ++tablesAdded;
     }
     return (float)scale;
 }
-
-//note: this function looks like a mistake and I don't remember writing it or why it works but somehow it's the only version that does
 WaveTable* WavetableFrame::tableForFreq(double frequency)
 {
-    auto* out = tables[0];
-    int i;
-    for(i = 0; i < tablesAdded; ++i)
+    for(int i = 0; i < tablesAdded; ++i)
     {
-        if(tables[i]->maxFreq < frequency && (i + 1) < tablesAdded)
-            out = tables[i + i];
+        if(frequency < pTables[i].maxFreq && frequency <= pTables[i].minFreq)
+            return &pTables[i];
     }
-    /*
-     I'm r-word so I don't know why getting tables[i + i] doesn't break it,
-     but breakpoint confirms that this if never evaluates true so whatever
-    */
-    if(out == NULL)
-        out = tables.getLast();
-    return out;
+    return &pTables[0];
 }
 
 float WavetableFrame::getSample(double frequency)
@@ -204,7 +273,7 @@ float WavetableFrame::getSample(double frequency)
     {
         position -= 1.0f;
     }
-    bottomSampleIndex = floor(table->length * position);
+    bottomSampleIndex = (int)(table->length * position);
     skew = (table->length * position) - bottomSampleIndex;
     sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
@@ -214,83 +283,52 @@ float WavetableFrame::getSample(double frequency)
 std::vector<float> WavetableFrame::getBasicVector(int resolution)
 {
     std::vector<float> out;
-    auto inc = floor(TABLESIZE / resolution);
-        for(int sample = 0; sample < resolution; ++sample)
-        {
-            auto f = (float)tables[0]->table[inc * sample]; //for purposes of graphing, always use the first table with the most harmonic detail
-            out.push_back(f);
-        }
+    auto inc = (int)(TABLESIZE / resolution);
+    for(int sample = 0; sample < resolution; ++sample)
+    {
+        int idx = (int)inc *sample;
+        auto f = (float)pTables[0][idx]; //for purposes of graphing, always use the first table with the most harmonic detail
+        out.push_back(f);
+    }
     return out;
 }
 
 WavetableOsc::WavetableOsc(juce::File wavData)
 {
     sampleRate = 44100.0f;
-    position = 0.0f;
+    currentPosition = 0.0f;
     numFrames = 0;
-    juce::AudioFormatManager manager;
-    manager.registerBasicFormats();
-    auto reader = manager.createReaderFor(wavData);
-    printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
+    auto manager = new juce::AudioFormatManager();
+    manager->registerBasicFormats();
+    auto reader = manager->createReaderFor(wavData);
     auto numSamples = reader->lengthInSamples;
-    int sNumFrames = floor(numSamples / TABLESIZE);
-    
+    auto sNumFrames = (int)(numSamples / TABLESIZE);
     long currentSample = 0;
-    printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
     buffer.clear();
+    const char* str = wavData.getFileName().toRawUTF8();
+    printf("File %s has %d frames\n", str, sNumFrames);
+    //NOTE: this is calling the default constructor, each table's data will have to be set appropriately
+    frames = new WavetableFrame[sNumFrames];
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
-    std::vector<float> vec;
-    for(int i = 0; i < sNumFrames; ++i)
+    std::array<float, TABLESIZE> fArray;
+    for(int i = 0; i < sNumFrames; ++i) //assign the values from each frame
     {
         for(int sample = 0; sample < TABLESIZE; ++sample)
         {
-            vec.push_back(buffer.getSample(0, sample));
+            fArray[sample] = buffer.getSample(0, sample); //transfer each sample into fArray
         }
-        addFrame(vec);
-        vec.clear();
+        frames[i] = WavetableFrame(fArray);
+        ++numFrames;
         buffer.clear();
-        currentSample += TABLESIZE;
-        printf("Loaded frame %d from sample %ld\n", i, currentSample);
-        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
-    }
-    delete reader;
-}
-
-void WavetableOsc::replaceTables(juce::String nTables)
-{
-    auto wavData = waveFiles[waveNames.indexOf(nTables)];
-    juce::AudioFormatManager manager;
-    manager.registerBasicFormats();
-    auto reader = manager.createReaderFor(wavData);
-    printf("Loading table set: %s\n", wavData.getFileName().toRawUTF8());
-    auto numSamples = reader->lengthInSamples;
-    int sNumFrames = floor(numSamples / TABLESIZE);
-    frames.ensureStorageAllocated(sNumFrames);
-    long currentSample = 0;
-    printf("Parsing %d frames from %lld samples...\n", sNumFrames, numSamples);
-    auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
-    buffer.clear();
-    reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
-    std::vector<float> vec;
-    auto startCount = numFrames;
-    for(int i = 0; i < sNumFrames; ++i)
-    {
-        for(int sample = 0; sample < TABLESIZE; ++sample)
-        {
-            vec.push_back(buffer.getSample(0, sample));
-        }
-        addFrame(vec);
-        vec.clear();
-        buffer.clear();
-        currentSample += TABLESIZE;
-        printf("Loaded frame %d from sample %ld\n", i, currentSample);
-        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
+        currentSample += TABLESIZE; //increment the read position by one frame length
+        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true); //fill the buffer with the next frame's info
     }
     frames.removeRange(0, startCount);
     frames.minimiseStorageOverheads();
     numFrames -= startCount;
     delete reader;
+    delete manager;
 }
 
 std::vector<std::vector<float>> WavetableOsc::getDataToGraph(int resolution)
@@ -298,7 +336,7 @@ std::vector<std::vector<float>> WavetableOsc::getDataToGraph(int resolution)
     std::vector<std::vector<float>> out;
     for(int frame = 0; frame < numFrames; ++frame)
     {
-        out.push_back(frames[frame]->getBasicVector(resolution));
+        out.push_back(frames[frame].getBasicVector(resolution));
     }
     return out;
 }

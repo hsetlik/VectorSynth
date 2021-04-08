@@ -14,44 +14,6 @@
 #include "WavetableProcessor.h"
 #include "EnvelopeComponent.h"
 
-
-struct GraphPathGroup
-{
-    const int resolution = 128;
-    const int max_paths = 30;
-    int pathSize;
-    juce::Path makePresizedPath(int size)
-    {
-        auto* path = new juce::Path();
-        path->preallocateSpace(size);
-        return *path;
-    }
-    GraphPathGroup(std::vector<std::vector<float>> input, float width, float height);
-    void resetData(std::vector<std::vector<float>> input);
-    const juce::Path& operator [] (int index)
-    {
-        return paths->at(index);
-    }
-    void alterFor3d(float index)
-    {
-        auto dX = cWidth / pathCount() / 4;
-        auto dY = cHeight / pathCount() / 4;
-        auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (cWidth / 8), -(dY * index * 0.7f) +  (cWidth / 5)));
-        paths->at((int)index).applyTransform(t);
-    }
-    void alterFor3d(juce::Path* p, float index)
-    {
-        auto dX = cWidth / pathCount() / 4;
-        auto dY = cHeight / pathCount() / 4;
-        auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (cWidth / 8), -(dY * index * 0.7f) +  (cWidth / 5)));
-        p->applyTransform(t);
-    }
-    int pathCount() {return (int)paths->size();}
-    std::unique_ptr<std::vector<juce::Path>> paths;
-    std::vector<std::vector<float>> rawData;
-    float cWidth, cHeight;
-};
-
 class WavetableDisplay : public juce::Component, public juce::Slider::Listener
 {
 public:
@@ -60,35 +22,38 @@ public:
     void paint(juce::Graphics& g) override;
     void setPosition(float pos); //recalculate colors in here;
     void sliderValueChanged(juce::Slider* s) override;
-    
-    
+    void removeListener()
+    {
+        sourceSlider->removeListener(this);
+    }
+    void alterFor3d(juce::Path* p, float index)
+    {
+        auto fBounds = getBounds().toFloat();
+        auto dX = fBounds.getWidth() / numTraces / 4;
+        auto dY = fBounds.getHeight() / numTraces / 4;
+        auto t = juce::AffineTransform::scale(0.55f, 0.55f).followedBy(juce::AffineTransform::shear(0.0f, 0.2f)).followedBy(juce::AffineTransform::translation((dX * index) + (fBounds.getWidth() / 8), -(dY * index * 0.7f) +  (fBounds.getHeight() / 5)));
+        p->applyTransform(t);
+        
+    }
     void mouseDown(const juce::MouseEvent &m) override
     {
         fake3d = !fake3d;
         setPosition(position);
         repaint();
     }
-    void setValues(std::vector<std::vector<float>> vals)
-    {
-        pathGroup.cWidth = fBounds.getWidth();
-        pathGroup.cHeight = fBounds.getHeight();
-        pathGroup.resetData(vals);
-    }
 private:
-    float topSample, bottomSample, cSample;
-    int upperIdx, lowerIdx;
-    juce::Rectangle<float> fBounds;
     bool fake3d;
     int resolution;
-    bool tracesNeedRepaint;
-    juce::Path current;
+    int numTraces;
+    std::vector<std::vector<float>> valueSet;
     float position;
+    juce::Slider* sourceSlider;
     juce::Colour background;
+    juce::OwnedArray<juce::Path> traces;
     juce::Colour highlight;
     ColorSet colors;
     ColorSet workingColors;
-    GraphPathGroup pathGroup;
-    juce::PathStrokeType stroke;
+    std::vector<float> currentValues;
 };
 
 class ArrowButton : public juce::ShapeButton
@@ -178,7 +143,7 @@ private:
     TablePositionSlider sPos;
     OscLevelSlider sLevel;
     DAHDSRPanel envPanel;
-    WavetableDisplay waveGraph;
+    std::unique_ptr<WavetableDisplay> pWaveDisplay;
     WaveSelector selector;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
