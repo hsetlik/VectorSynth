@@ -264,7 +264,9 @@ WaveTable* WavetableFrame::tableForFreq(double frequency)
     return &pTables[0];
 }
 
-float WavetableFrame::getSample(double frequency)
+
+
+void WavetableFrame::clockSample(double frequency)
 {
     posDelta = (double)(frequency / sampleRate);
     auto table = tableForFreq(posDelta);
@@ -277,7 +279,6 @@ float WavetableFrame::getSample(double frequency)
     skew = (table->length * position) - bottomSampleIndex;
     sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
-    return output;
 }
 
 std::vector<float> WavetableFrame::getBasicVector(int resolution)
@@ -324,9 +325,6 @@ WavetableOsc::WavetableOsc(juce::File wavData)
         currentSample += TABLESIZE; //increment the read position by one frame length
         reader->read(&buffer, 0, TABLESIZE, currentSample, true, true); //fill the buffer with the next frame's info
     }
-    frames.removeRange(0, startCount);
-    frames.minimiseStorageOverheads();
-    numFrames -= startCount;
     delete reader;
     delete manager;
 }

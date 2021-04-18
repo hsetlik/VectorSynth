@@ -98,9 +98,10 @@ public:
     }
     int createTables(double* waveReal, double* waveImag, int numSamples);
     float makeTable(double* waveReal, double* waveImag, int numSamples, double scale, double bottomFreq, double topFreq);
-    float getSample(double frequency);
+    float getSample() {return output;}
     WaveTable* tableForFreq(double frequency);
     std::vector<float> getBasicVector(int resolution);
+    void clockSample(double frequency);
 private:
     WaveTable* pTables;
     WaveTable* rawTable;
@@ -127,12 +128,14 @@ public:
     }
     WavetableOsc(juce::File wavData);
     ~WavetableOsc() {}
-    void addFrame(std::vector<float> d)
-    {
-        frames.add(new WavetableFrame(d));
-        ++numFrames;
-    }
     void replaceTables(juce::String nTables);
+    void clockFrames(double frequency)
+    {
+        for(frameIndex = 0; frameIndex < numFrames; ++frameIndex)
+        {
+            frames[frameIndex].clockSample(frequency);
+        }
+    }
     void setSampleRate(double newRate)
     {
         sampleRate = newRate;
@@ -160,8 +163,9 @@ public:
     }
     float getSample(double freq)
     {
+        clockFrames(freq);
         if(numFrames < 2)
-            output = frames[0].getSample(freq);
+            output = frames[0].getSample();
         else
         {
             if(fabs(targetPosition - currentPosition) > maxSamplePosDelta)
@@ -172,8 +176,8 @@ public:
             lowerIndex = floor(pFrame);
             skew = pFrame - lowerIndex;
             upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
-            bSample = frames[lowerIndex].getSample(freq);
-            tSample = frames[upperIndex].getSample(freq);
+            bSample = frames[lowerIndex].getSample();
+            tSample = frames[upperIndex].getSample();
             output = bSample + ((tSample - bSample) * skew);
         }
         return clamp(output, 1.0f);
@@ -182,6 +186,7 @@ public:
     juce::StringArray waveNames;
     float currentPosition;
 private:
+    int frameIndex;
     int lowerIndex;
     int upperIndex;
     float targetPosition;
