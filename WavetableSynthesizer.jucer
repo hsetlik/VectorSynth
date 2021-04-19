@@ -29,6 +29,10 @@
               file="Source/WavetableComponent.h"/>
       </GROUP>
       <GROUP id="{EA2092CB-E0AE-00BD-BD3F-C638FC4F7B2D}" name="PluginCore">
+        <FILE id="hXe6Xi" name="ModulationTree.cpp" compile="1" resource="0"
+              file="Source/ModulationTree.cpp"/>
+        <FILE id="HE4AW9" name="ModulationTree.h" compile="0" resource="0"
+              file="Source/ModulationTree.h"/>
         <FILE id="S4m1TE" name="PluginProcessor.cpp" compile="1" resource="0"
               file="Source/PluginProcessor.cpp"/>
         <FILE id="GkKrFH" name="PluginProcessor.h" compile="0" resource="0"
