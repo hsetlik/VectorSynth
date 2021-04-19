@@ -10,6 +10,28 @@
 
 #pragma once
 #include <JuceHeader.h>
+
+// macros to define parameter limits
+// these should be here in every header that defines an object which is associated with parameters
+#define DELAY_MIN 0.0f
+#define DELAY_MAX 20000.0f
+#define DELAY_DEFAULT 0.0f
+#define ATTACK_MIN 0.0f
+#define ATTACK_MAX 20000.0f
+#define ATTACK_DEFAULT 20.0f
+#define HOLD_MIN 0.0f
+#define HOLD_MAX 20000.0f
+#define HOLD_DEFAULT 0.0f
+#define DECAY_MIN 0.0f
+#define DECAY_MAX 20000.0f
+#define DECAY_DEFAULT 40.0f
+#define SUSTAIN_MIN 0.0f
+#define SUSTAIN_MAX 1.0f
+#define SUSTAIN_DEFAULT 0.6f
+#define RELEASE_MIN 0.0f
+#define RELEASE_MAX 20000.0f
+#define RELEASE_DEFAULT 80.0f
+
 class DAHDSR
 {
 public:
@@ -89,13 +111,12 @@ private:
     double sampleRate;
     int index;
     bool trigger;
-    float delayTime = 0.0f;
-    float attackTime = 20.0f;
-    float holdTime = 0.0f;
-    float decayTime = 100.0f;
-    float sustainLevel = 0.6f;
-    float releaseTime = 40.0f;
-    
+    float delayTime = DELAY_DEFAULT;
+    float attackTime = ATTACK_DEFAULT;
+    float holdTime = HOLD_DEFAULT;
+    float decayTime = DECAY_DEFAULT;
+    float sustainLevel = SUSTAIN_DEFAULT;
+    float releaseTime = RELEASE_DEFAULT;
     float _startLevel;
     float _endLevel;
 };

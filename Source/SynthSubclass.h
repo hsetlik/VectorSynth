@@ -13,11 +13,26 @@
 #include "WavetableProcessor.h"
 #include "DAHDSR.h"
 #include "SynthVoice.h"
+#define NUM_VOICES 6
 
 class WavetableSynth : public juce::Synthesiser
 {
 public:
-   
-    
+    WavetableSynth(juce::Array<juce::File>& files)
+    {
+        for(int i = 0; i < NUM_VOICES; ++i)
+        {
+            addVoice(new WavetableVoice(files, 0));
+        }
+        addSound(new WavetableSound());
+    }
+    void updateParameters(juce::AudioProcessorValueTreeState* tree)
+    {
+        for(auto v : voices)
+        {
+            auto* WTVoice = dynamic_cast<WavetableVoice*>(v);
+            WTVoice->updateParameters(tree);
+        }
+    }
 };
 

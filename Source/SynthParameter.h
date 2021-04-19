@@ -13,18 +13,19 @@
 #include "ModSourceComponent.h"
 
 
+
 //! Base class for any modulatable parameter
 class SynthParam
 {
 public:
-    SynthParam()
+    SynthParam() : TreeString("null")
     {
     }
     void operator =(float newValue)
     {
         value = newValue;
     }
-    void setRange(float _max, float _min)
+    void setRange(float _min, float _max)
     {
         max = _max;
         min = _min;
@@ -48,7 +49,17 @@ public:
     {
         return lower + ((upper - lower) * r);
     }
+    void setTreeString(juce::String str)
+    {
+        TreeString = str;
+    }
+    void updateFromTree(juce::AudioProcessorValueTreeState* tree)
+    {
+        if(TreeString != "null")
+            set(*tree->getRawParameterValue(TreeString));
+    }
 private:
+    juce::String TreeString;
     std::atomic<float> max;
     std::atomic<float> min;
     float offset;

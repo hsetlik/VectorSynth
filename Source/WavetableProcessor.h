@@ -11,9 +11,12 @@
 #pragma once
 #include <JuceHeader.h>
 #include "WavetableData.h"
-const int TABLESIZE = 2048;
-const int NUMTABLES = 32;
-const int fftOrder = 10;
+#define TABLESIZE 2048
+#define NUMTABLES 32
+
+#define WTPOS_MIN 0.0f
+#define WTPOS_MAX 1.0f
+#define WTPOS_DEFAULT 0.0f
 
 
 
