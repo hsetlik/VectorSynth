@@ -40,4 +40,6 @@ public:
     //===============================================
     void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples);
     double fundamental;
+    WavetableOscHolder oscillator;
+    DAHDSR envelope;
 };
