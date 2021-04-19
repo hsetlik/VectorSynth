@@ -224,9 +224,6 @@ private:
     RemoveButton closeButton;
     
 };
-
-
-
 class ModTargetComponent : public juce::Component, public juce::Button::Listener
 {
 public:

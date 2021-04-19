@@ -14,6 +14,7 @@
 #include "DragDropContainer.h"
 #include "AudioFileLoader.h"
 #include "WavetableComponent.h"
+#include "SynthParameter.h"
 //==============================================================================
 /**
 */
@@ -59,10 +60,9 @@ public:
     juce::AudioProcessorValueTreeState tree;
     AudioWavetableHandler handler;
 private:
-   
-    double frequency;
+    SynthParam<double> frequency;
     float lastSample;
-    float position;
+    SynthParam<float> position;
 public:
     WavetableOscHolder osc;
     //==============================================================================

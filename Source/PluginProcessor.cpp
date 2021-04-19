@@ -144,15 +144,15 @@ bool WavetableSynthesizerAudioProcessor::isBusesLayoutSupported (const BusesLayo
 void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     buffer.clear();
-    frequency = (double)*tree.getRawParameterValue("frequency");
-    if(*tree.getRawParameterValue("wavetablePos") != position)
+    frequency.set((double)*tree.getRawParameterValue("frequency"));
+    if(*tree.getRawParameterValue("wavetablePos") != position.get())
     {
-        position = *tree.getRawParameterValue("wavetablePos");
-        osc.setPosition(position);
+        position.set(*tree.getRawParameterValue("wavetablePos"));
+        osc.setPosition(position.get());
     }
         for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
-            lastSample = osc.getSample(frequency);
+            lastSample = osc.getSample(frequency.get());
             for(int channel = 0; channel < 2; ++channel)
             {
                 buffer.addSample(channel, sample, lastSample * 0.25f);

@@ -10,10 +10,6 @@
 
 #pragma once
 #include <JuceHeader.h>
-struct envDataSet {
-    double delay, attack, hold, decay, sustain, release;
-};
-
 class DAHDSR
 {
 public:
@@ -28,40 +24,62 @@ public:
         noteOff
     };
     //functions
-    DAHDSR(int ind) : factor(1.0f), sampleRate(44100), index(ind)
+    DAHDSR(int ind=0) : factor(1.0f), sampleRate(44100), index(ind)
     {
         trigger = false;
         samplesIntoPhase = 0;
         currentPhase = noteOff;
     }
     ~DAHDSR() {}
+    static envPhase nextPhase(envPhase input)
+    {
+        if(input != noteOff)
+            return (envPhase)(input + 1);
+        else
+            return noteOff;
+    }
     void triggerOn()
     {
         trigger = true;
-        samplesInPhase = floor(settings.delay * (sampleRate / 1000));
-        samplesIntoPhase = 0;
-        currentPhase = delayPhase;
+        enterPhase(delayPhase);
+    }
+    float factorFor(float startLevel, float endLevel, float lengthMs)
+    {
+        if(startLevel == 0.0f)
+            startLevel = minLevel;
+        if(endLevel == 0.0f)
+            endLevel = minLevel;
+        unsigned long phaseLengthSamples = lengthMs * (sampleRate / 1000);
+        return exp((log(endLevel) - log(startLevel)) / phaseLengthSamples);
     }
     void triggerOff()
     {
         trigger = false;
-        currentPhase = releasePhase;
-        samplesIntoPhase = 0;
-        samplesInPhase = settings.release * (sampleRate / 1000);
-        factor = exp((log(minLevel) - log(settings.sustain)) /samplesInPhase);
+        enterPhase(releasePhase);
     }
+    void updatePhase()
+    {
+        if(samplesIntoPhase > samplesInPhase || samplesInPhase < 1)
+        {
+            enterPhase(nextPhase(currentPhase));
+        }
+    }
+    void enterPhase(envPhase newPhase);
     void setSampleRate(double value) {sampleRate = value;}
     float process(float input);
+    float clockOutput()
+    {
+        return process(1.0f);
+    }
     envPhase getPhase() {return currentPhase;}
     double output;
-    void setDelay(double val) {settings.delay = val;}
-    void setAttack(double val) {settings.attack = val;}
-    void setHold(double val) {settings.hold = val;}
-    void setDecay(double val) {settings.decay = val;}
-    void setSustain(double val) {settings.sustain = val;}
-    void setRelease(double val) {settings.release = val;}
+    void setDelay(float val) {delayTime = val;}
+    void setAttack(float val) {attackTime = val;}
+    void setHold(float val) {holdTime = val;}
+    void setDecay(float val) {decayTime = val;}
+    void setSustain(float val) {sustainLevel = val;}
+    void setRelease(float val) {releaseTime = val;}
 private:
-    envDataSet settings;
     //data
     envPhase currentPhase;
     unsigned long long samplesIntoPhase;
@@ -71,4 +89,13 @@ private:
     double sampleRate;
     int index;
     bool trigger;
+    float delayTime = 0.0f;
+    float attackTime = 20.0f;
+    float holdTime = 0.0f;
+    float decayTime = 100.0f;
+    float sustainLevel = 0.6f;
+    float releaseTime = 40.0f;
+    
+    float _startLevel;
+    float _endLevel;
 };

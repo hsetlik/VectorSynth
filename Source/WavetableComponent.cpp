@@ -38,14 +38,14 @@ void WavetableDisplay::setPosition(float pos)
     auto& upperData = valueSet[upperIdx];
     auto& lowerData = valueSet[lowerIdx];
     auto skew = (position * (numTraces - 1) * 0.99f) - (float)lowerIdx;
-    auto aExp = 0.65f;
+    auto aExp = 0.95f;
     auto tColorA = highlight.withBrightness(highlight.getBrightness() / 8).withSaturation(highlight.getSaturation() / 6);
     auto tColorB = highlight.withBrightness(highlight.getBrightness() * 0.8f);
     for(int i = 0; i < numTraces; ++i)
     {
         auto diff = fabs(i - (position * (numTraces - 1)));
         auto alpha = 1.0f * pow(aExp, diff);
-        auto col = Color::blendHSB(tColorA, tColorB, alpha);
+        auto col = Color::blendHSB(tColorA, tColorB, alpha * 0.75f);
         workingColors.set(i, col);
     }
     for(int i = 0; i < resolution; ++i)
@@ -137,7 +137,6 @@ SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioPro
 sPos(c, 0),
 sLevel(c, 0),
 envPanel(c),
-//waveGraph(o->getDataToGraph(128), &sPos.mTarget),
 pWaveDisplay(std::make_unique<WavetableDisplay>(o->getDataToGraph(128), &sPos.mTarget)),
 selector(o, this),
 osc(o)
