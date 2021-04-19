@@ -15,7 +15,7 @@
 class DummyContainer : public juce::DragAndDropContainer, public juce::Component
 {
 public:
-    DummyContainer(juce::AudioProcessorValueTreeState* t,  WavetableOscHolder* o) : panel(this, t, o)
+    DummyContainer(juce::AudioProcessorValueTreeState* t,  WavetableSynth* s) : panel(this, t, s, 0)
     {
         addAndMakeVisible(&panel);
     }

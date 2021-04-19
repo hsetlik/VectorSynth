@@ -29,6 +29,7 @@ public:
         printf("Handler asked for: '%s'\n", name.toRawUTF8());
         return wavFiles[tableNames.indexOf(name)];
     }
+    static int getNumWavetables();
     juce::StringArray tableNames;
     juce::Array<juce::File> wavFiles;
 private:

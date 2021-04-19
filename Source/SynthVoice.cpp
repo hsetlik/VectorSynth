@@ -69,7 +69,7 @@ void WavetableVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int
     }
 }
 
-void WavetableVoice::setCurrentPlaybackSampleRate(double newRate)
+void WavetableVoice::setSampleRate(double newRate)
 {
     oscillator.setSampleRate(newRate);
     envelope.setSampleRate(newRate);

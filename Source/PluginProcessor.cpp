@@ -8,14 +8,54 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-juce::AudioProcessorValueTreeState::ParameterLayout makeLayout()
+juce::AudioProcessorValueTreeState::ParameterLayout makeLayout(int idx)
 {
+    auto iStr = juce::String(idx);
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
-    juce::NormalisableRange<float> freqRange(150.0f, 20000.0f, 20.0f, 0.5f);
-    freqRange.setSkewForCentre(1500.0f);
-    layout.add(std::make_unique<juce::AudioParameterFloat>("frequency", "Frequency", freqRange, 150.0f));
-    juce::NormalisableRange<float> posRange(0.0f, 1.0f);
-    layout.add(std::make_unique<juce::AudioParameterFloat>("wavetablePos", "wavetable position", posRange, 0.0f));
+    auto posRange = juce::NormalisableRange<float>(WTPOS_MIN, WTPOS_MAX, 0.00001f);
+    auto delayRange = juce::NormalisableRange<float>(DELAY_MIN, DELAY_MAX, 0.1f);
+    delayRange.setSkewForCentre(DELAY_CENTER);
+    auto attackRange = juce::NormalisableRange<float>(ATTACK_MIN, ATTACK_MAX, 0.1f);
+    attackRange.setSkewForCentre(ATTACK_CENTER);
+    auto holdRange = juce::NormalisableRange<float>(HOLD_MIN, HOLD_MAX, 0.1f);
+    holdRange.setSkewForCentre(HOLD_CENTER);
+    auto decayRange = juce::NormalisableRange<float>(DECAY_MIN, DECAY_MAX, 0.1f);
+    decayRange.setSkewForCentre(DECAY_CENTER);
+    auto sustainRange = juce::NormalisableRange<float>(SUSTAIN_MIN, SUSTAIN_MAX, 0.001f);
+    auto releaseRange = juce::NormalisableRange<float>(RELEASE_MIN, RELEASE_MAX, 0.1f);
+    releaseRange.setSkewForCentre(RELEASE_CENTER);
+    
+    auto numWaveFiles = (float)AudioWavetableHandler::getNumWavetables();
+    auto waveChoiceId = "waveChoiceParam" + iStr;
+    auto waveChoiceName = "Wavetabe on: " + iStr;
+    
+    auto waveChoiceRange = juce::NormalisableRange<float>(0.0f, numWaveFiles, 1.0f);
+    
+    auto posId = "oscPositionParam" + iStr;
+    auto posName = "Wavetable Position " + iStr;
+    
+    auto delayId = "delayParam" + iStr;
+    auto delayName = "Delay " + iStr;
+    auto attackId = "attackParam" + iStr;
+    auto attackName = "Attack " + iStr;
+    auto holdId = "holdParam" + iStr;
+    auto holdName = "Hold " + iStr;
+    auto decayId = "decayParam" + iStr;
+    auto decayName = "Decay" + iStr;
+    auto sustainId = "sustainParam" + iStr;
+    auto sustainName = "Sustain " + iStr;
+    auto releaseId = "releaseParam" + iStr;
+    auto releaseName = "Release " + iStr;
+    
+    layout.add(std::make_unique<juce::AudioParameterFloat>(posId, posName, posRange, WTPOS_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(delayId, delayName, delayRange, DELAY_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(attackId, attackName, attackRange, ATTACK_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(holdId, holdName, holdRange, HOLD_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(decayId, decayName, decayRange, DECAY_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(sustainId, sustainName, sustainRange, SUSTAIN_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(releaseId, releaseName, releaseRange, RELEASE_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(waveChoiceId, waveChoiceName, waveChoiceRange, 0.0f));
+    
     return layout;
 }
 
@@ -29,11 +69,11 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(handler.getWav(1))
+                       ), tree(*this, nullptr, "AllParameters", makeLayout(0)),
+synth(handler.wavFiles)
 #endif
 {
-    osc.waveNames = handler.tableNames;
-    osc.waveFiles = handler.wavFiles;
+    synth.setWaveNames(handler.tableNames);
 }
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()
 {
@@ -106,7 +146,8 @@ void WavetableSynthesizerAudioProcessor::prepareToPlay (double sampleRate, int s
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    osc.setSampleRate(sampleRate);
+    synth.setCurrentPlaybackSampleRate(sampleRate);
+    synth.setSampleRateRecursive(sampleRate);
 }
 
 void WavetableSynthesizerAudioProcessor::releaseResources()
@@ -144,20 +185,8 @@ bool WavetableSynthesizerAudioProcessor::isBusesLayoutSupported (const BusesLayo
 void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     buffer.clear();
-    frequency = (double)*tree.getRawParameterValue("frequency");
-    if(*tree.getRawParameterValue("wavetablePos") != position)
-    {
-        position = *tree.getRawParameterValue("wavetablePos");
-        osc.setPosition(position);
-    }
-        for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
-        {
-            lastSample = osc.getSample(frequency);
-            for(int channel = 0; channel < 2; ++channel)
-            {
-                buffer.addSample(channel, sample, lastSample * 0.25f);
-            }
-        }
+    synth.updateParameters(&tree);
+    synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
 //==============================================================================

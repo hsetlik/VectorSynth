@@ -45,40 +45,12 @@ AudioWavetableHandler::AudioWavetableHandler()
         }
     }
 }
-/*
-void AudioWavetableHandler::oscFromFile(WavetableOsc* osc, juce::String fileName)
+
+int AudioWavetableHandler::getNumWavetables()
 {
-    auto idx = tableNames.indexOf(fileName);
-    auto file = wavFiles[idx]; //grip the appropriate wav file
-    reader = manager.createReaderFor(file);
-    printf("Loading table set: %s\n", fileName.toRawUTF8());
-    auto numSamples = reader->lengthInSamples;
-    auto numFrames = floor(numSamples / TABLESIZE);
-    long currentSample = 0;
-    auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
-    buffer.clear();
-    reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
-    std::vector<float> vec;
-    for(int i = 0; i < numFrames; ++i)
-    {
-        for(int sample = 0; sample < TABLESIZE; ++sample)
-        {
-            vec.push_back(buffer.getSample(0, sample));
-        }
-        if(i < osc->numFrames)
-        {
-            osc->frames.set(i, new WTframe(vec), true);
-        }
-        else
-        {
-            osc->addFrame(vec);
-        }
-        vec.clear();
-        buffer.clear();
-        currentSample += TABLESIZE;
-        printf("Loaded Table %d from sample %ld\n", i, currentSample);
-        reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);
-    }
-    delete reader;
+    auto appFolder = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
+    appFolder.setAsCurrentWorkingDirectory();
+    auto waveFolder = appFolder.getChildFile("MyWavetables");
+    auto files = waveFolder.findChildFiles(juce::File::findFiles, true);
+    return files.size();
 }
-*/

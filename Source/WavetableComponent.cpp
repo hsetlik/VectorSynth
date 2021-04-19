@@ -123,7 +123,7 @@ void WavetableDisplay::sliderValueChanged(juce::Slider *s)
     repaint();
 }
 
-WaveSelector::WaveSelector(WavetableOscHolder* o, juce::ComboBox::Listener* list) : osc(o), lButton(true, this), rButton(false, this), tableNames(osc->waveNames)
+WaveSelector::WaveSelector(juce::StringArray waveNames, juce::ComboBox::Listener* list) : lButton(true, this), rButton(false, this), tableNames(waveNames)
 {
     addAndMakeVisible(&waveBox);
     addAndMakeVisible(&rButton);
@@ -133,22 +133,27 @@ WaveSelector::WaveSelector(WavetableOscHolder* o, juce::ComboBox::Listener* list
     waveBox.addListener(list);
 }
 
-SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o) :
+void WaveSelector::attach(juce::AudioProcessorValueTreeState* tree, int suffix)
+{
+    wAttach.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(*tree, "waveChoiceParam" + juce::String(suffix), waveBox));
+}
+
+SoundSourcePanel::SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableSynth* s, int soundSrcIdx) :
 sPos(c, 0),
-sLevel(c, 0),
 envPanel(c),
-pWaveDisplay(std::make_unique<WavetableDisplay>(o->getDataToGraph(128), &sPos.mTarget)),
-selector(o, this),
-osc(o)
+pWaveDisplay(std::make_unique<WavetableDisplay>(s->getDataToGraph(128), &sPos.mTarget)),
+selector(s->getWaveNames(), this),
+soundSourceIndex(soundSrcIdx),
+synth(s)
 {
     addAndMakeVisible(sPos);
-    addAndMakeVisible(sLevel);
     addAndMakeVisible(envPanel);
     addAndMakeVisible(*pWaveDisplay);
     addAndMakeVisible(selector);
     
-    freqAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "frequency", sLevel.mTarget));
-    posAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "wavetablePos", sPos.mTarget));
+    posAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*t, "oscPositionParam" + juce::String(soundSourceIndex), sPos.mTarget));
+    envPanel.attach(t, soundSourceIndex);
+    selector.attach(t, soundSourceIndex);
 }
 
 void SoundSourcePanel::resized()
@@ -158,7 +163,6 @@ void SoundSourcePanel::resized()
     pWaveDisplay->setBounds(dX / 5, dY / 5, 4.5 * dX, 4.5 * dY);
     selector.setBounds(dX * 5, dY / 3, dX * 6.5, dY / 2);
     envPanel.setBounds(dX / 5, 5 * dY, 8 * dX, 7 * dY);
-    sLevel.setBounds(8 * dX, 2 * dY, 2.5f * dY, 2.5f * dY);
     sPos.setBounds(8 * dX, 5 * dY, 2.5f * dY, 2.5f * dY);
 }
 
@@ -167,10 +171,10 @@ void SoundSourcePanel::comboBoxChanged(juce::ComboBox *c)
     if(wavFiles.size() > 0)
     {
         auto idx = c->getSelectedItemIndex();
-        osc->replaceFromFile(wavFiles[idx]);
+        synth->updateOscs(idx);
         pWaveDisplay->removeListener();
-        pWaveDisplay.reset(new WavetableDisplay(osc->getDataToGraph(128), &sPos.mTarget));
-        pWaveDisplay->setPosition(osc->getPosition());
+        pWaveDisplay.reset(new WavetableDisplay(synth->getDataToGraph(128), &sPos.mTarget));
+        pWaveDisplay->setPosition(sPos.mTarget.getValue());
         addAndMakeVisible(*pWaveDisplay);
         resized();
     }

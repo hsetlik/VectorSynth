@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "WavetableProcessor.h"
+#include "SynthSubclass.h"
 #include "SliderTypes.h"
 #include "DragDropContainer.h"
 #include "AudioFileLoader.h"
@@ -63,7 +64,7 @@ private:
     float frequency;
     float lastSample;
 public:
-    WavetableOscHolder osc;
+    WavetableSynth synth;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthesizerAudioProcessor)
 };

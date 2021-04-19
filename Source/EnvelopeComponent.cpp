@@ -74,3 +74,14 @@ void DAHDSRPanel::paint(juce::Graphics &g)
     g.setColour(envModSource.getColor().darker(0.1f));
     g.fillRect(getLocalBounds().reduced(getLocalBounds().getWidth() / 45));
 }
+
+void DAHDSRPanel::attach(juce::AudioProcessorValueTreeState *tree, int suffix)
+{
+    auto iStr = juce::String(suffix);
+    aDelay.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*tree, "delayParam" + iStr, sDelay.mTarget));
+    aAttack.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*tree, "attackParam" + iStr, sAttack.mTarget));
+    aHold.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*tree, "holdParam" + iStr, sHold.mTarget));
+    aDecay.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*tree, "decayParam" + iStr, sDecay.mTarget));
+    aSustain.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*tree, "sustainParam" + iStr, sSustain.mTarget));
+    aRelease.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(*tree, "releaseParam" + iStr, sRelease.mTarget));
+}

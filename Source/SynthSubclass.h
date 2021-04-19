@@ -34,5 +34,16 @@ public:
             WTVoice->updateParameters(tree);
         }
     }
+    std::vector<std::vector<float>> getDataToGraph(int resolution)
+    {
+        auto* voice = dynamic_cast<WavetableVoice*>(voices[0]);
+        return voice->oscillator.getDataToGraph(resolution);
+    }
+    void setWaveNames(juce::StringArray waveNames);
+    juce::StringArray getWaveNames();
+    void setWaveFiles(juce::Array<juce::File> waveFiles);
+    void updateOscs(juce::File newTable);
+    void updateOscs(int index);
+    void setSampleRateRecursive(double newRate);
 };
 

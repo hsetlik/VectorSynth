@@ -76,10 +76,14 @@ public:
     void channelPressureChanged (int newChannelPressureValue) override {}
     //===============================================
     void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override;
-    void setCurrentPlaybackSampleRate(double newRate) override;
+    void setSampleRate(double newRate);
     void setOscillator(int fileIndex)
     {
         oscillator.replaceFromFile(fileArray[fileIndex]);
+    }
+    void setOscillator(juce::File file)
+    {
+        oscillator.replaceFromFile(file);
     }
     double fundamental;
     WavetableOscHolder oscillator;

@@ -18,7 +18,9 @@ public:
     DAHDSRPanel(juce::DragAndDropContainer* c);
     void resized() override;
     void paint(juce::Graphics& g) override;
+    void attach(juce::AudioProcessorValueTreeState* tree, int suffix);
 private:
+    //components
     EnvelopeDial sDelay;
     EnvelopeDial sAttack;
     EnvelopeDial sHold;
@@ -33,4 +35,11 @@ private:
     EnvelopeLabel lRelease;
     DAHDSRGraph graph;
     ModSourceComponent envModSource;
+    //attachments
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> aDelay;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> aAttack;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> aHold;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> aDecay;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> aSustain;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> aRelease;
 };

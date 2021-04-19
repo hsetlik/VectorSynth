@@ -13,6 +13,7 @@
 #include "RgbColor.h"
 #include "WavetableProcessor.h"
 #include "EnvelopeComponent.h"
+#include "SynthSubclass.h"
 
 class WavetableDisplay : public juce::Component, public juce::Slider::Listener
 {
@@ -94,7 +95,7 @@ private:
 class WaveSelector : public juce::Component, public juce::Button::Listener
 {
 public:
-    WaveSelector(WavetableOscHolder* o, juce::ComboBox::Listener* list);
+    WaveSelector(juce::StringArray waveNames, juce::ComboBox::Listener* list);
     ~WaveSelector() {}
     void buttonClicked(juce::Button* b) override
     {
@@ -118,18 +119,19 @@ public:
         rButton.setBounds(n, 0, n, h);
         waveBox.setBounds(2 * n, 0, 10 * n, h);
     }
+    void attach(juce::AudioProcessorValueTreeState* tree, int suffix);
 private:
-    WavetableOscHolder* osc;
     juce::ComboBox waveBox;
     ArrowButton lButton;
     ArrowButton rButton;
     juce::StringArray tableNames;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> wAttach;
 };
 
 class SoundSourcePanel : public juce::Component, public juce::ComboBox::Listener
 {
 public:
-    SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o);
+    SoundSourcePanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* t, WavetableSynth* s, int soundSrcIdx);
     ~SoundSourcePanel() {}
     void resized() override;
     void comboBoxChanged(juce::ComboBox* c) override;
@@ -140,13 +142,12 @@ public:
 private:
     juce::Array<juce::File> wavFiles;
     TablePositionSlider sPos;
-    OscLevelSlider sLevel;
     DAHDSRPanel envPanel;
     std::unique_ptr<WavetableDisplay> pWaveDisplay;
     WaveSelector selector;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> freqAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> posAttach;
-    WavetableOscHolder* osc;
+    int soundSourceIndex;
+    WavetableSynth* synth;
 };
 
 
