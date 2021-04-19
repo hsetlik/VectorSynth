@@ -34,8 +34,6 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
 {
     osc.waveNames = handler.tableNames;
     osc.waveFiles = handler.wavFiles;
-    frequency.setRange(20000.0f, 150.0f);
-    position.setRange(1.0f, 0.0f);
 }
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()
 {
@@ -146,15 +144,15 @@ bool WavetableSynthesizerAudioProcessor::isBusesLayoutSupported (const BusesLayo
 void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     buffer.clear();
-    frequency.set((double)*tree.getRawParameterValue("frequency"));
-    if(*tree.getRawParameterValue("wavetablePos") != position.get())
+    frequency = (double)*tree.getRawParameterValue("frequency");
+    if(*tree.getRawParameterValue("wavetablePos") != position)
     {
-        position.set(*tree.getRawParameterValue("wavetablePos"));
-        osc.setPosition(position.get());
+        position = *tree.getRawParameterValue("wavetablePos");
+        osc.setPosition(position);
     }
         for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
-            lastSample = osc.getSample(frequency.get());
+            lastSample = osc.getSample(frequency);
             for(int channel = 0; channel < 2; ++channel)
             {
                 buffer.addSample(channel, sample, lastSample * 0.25f);

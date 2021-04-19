@@ -82,7 +82,7 @@ void fft(int N, double *ar, double *ai)
     }
 }
 
-WavetableFrame::WavetableFrame(std::vector<float> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t), position(0.0f), sampleRate(44100.0f)
+WavetableFrame::WavetableFrame(std::vector<float> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t), phase(0.0f), sampleRate(44100.0f)
 {
     lastMinFreq = 0.0f;
     auto inc = float(data.size() / TABLESIZE);
@@ -109,7 +109,7 @@ WavetableFrame::WavetableFrame(std::vector<float> t) : pTables(new WaveTable [10
     delete [] freqWaveImag;
 }
 
-WavetableFrame::WavetableFrame(std::array<float, TABLESIZE> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t.begin(), t.end()), position(0.0f), sampleRate(44100.0f)
+WavetableFrame::WavetableFrame(std::array<float, TABLESIZE> t) : pTables(new WaveTable [10]), tablesAdded(0), data(t.begin(), t.end()), phase(0.0f), sampleRate(44100.0f)
 {
     lastMinFreq = 0.0f;
     auto inc = float(data.size() / TABLESIZE);
@@ -135,7 +135,7 @@ WavetableFrame::WavetableFrame(std::array<float, TABLESIZE> t) : pTables(new Wav
     delete [] freqWaveImag;
 }
 
-WavetableFrame::WavetableFrame(float* t, int length) : pTables(new WaveTable [10]), tablesAdded(0), position(0.0f), sampleRate(44100.0f)
+WavetableFrame::WavetableFrame(float* t, int length) : pTables(new WaveTable [10]), tablesAdded(0), phase(0.0f), sampleRate(44100.0f)
 {
     for(int i = 0; i < length; ++i)
     {
@@ -268,15 +268,15 @@ WaveTable* WavetableFrame::tableForFreq(double frequency)
 
 void WavetableFrame::clockSample(double frequency)
 {
-    posDelta = (double)(frequency / sampleRate);
-    auto table = tableForFreq(posDelta);
-    position += posDelta;
-    if(position > 1.0f)
+    phaseDelta = (double)(frequency / sampleRate);
+    auto table = tableForFreq(phaseDelta);
+    phase += phaseDelta;
+    if(phase > 1.0f)
     {
-        position -= 1.0f;
+        phase -= 1.0f;
     }
-    bottomSampleIndex = (int)(table->length * position);
-    skew = (table->length * position) - bottomSampleIndex;
+    bottomSampleIndex = (int)(table->length * phase);
+    skew = (table->length * phase) - bottomSampleIndex;
     sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
     output = table->table[bottomSampleIndex] + (skew * sampleDiff);
 }

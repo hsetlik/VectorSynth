@@ -99,6 +99,34 @@ public:
     int createTables(double* waveReal, double* waveImag, int numSamples);
     float makeTable(double* waveReal, double* waveImag, int numSamples, double scale, double bottomFreq, double topFreq);
     float getSample() {return output;}
+    float getSample(float pos, double frequency)
+    {
+        phaseDelta = (double)(frequency / sampleRate);
+        auto table = tableForFreq(phaseDelta);
+        phase = pos;
+        phase += phaseDelta;
+        if(phase > 1.0f)
+        {
+            phase -= 1.0f;
+        }
+        bottomSampleIndex = (int)(table->length * phase);
+        skew = (table->length * phase) - bottomSampleIndex;
+        sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
+        output = table->table[bottomSampleIndex] + (skew * sampleDiff);
+        return output;
+    }
+    float getSample(float phase_)
+    {
+        phase = phase_;
+        phaseDelta = fabs(phase - lastPhase);
+        auto table = tableForFreq(phaseDelta);
+        bottomSampleIndex = (int)(table->length * phase);
+        skew = (table->length * phase) - bottomSampleIndex;
+        sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
+        output = table->table[bottomSampleIndex] + (skew * sampleDiff);
+        lastPhase = phase;
+        return output;
+    }
     WaveTable* tableForFreq(double frequency);
     std::vector<float> getBasicVector(int resolution);
     void clockSample(double frequency);
@@ -108,8 +136,9 @@ private:
     double lastMinFreq;
     int tablesAdded;
     std::vector<float> data; //the initial input data from which all the tables are made
-    float position;
-    float posDelta;
+    float phase;
+    float phaseDelta;
+    float lastPhase;
     float output;
     double sampleRate;
     int bottomSampleIndex;
@@ -122,6 +151,7 @@ class WavetableOsc
 public:
     WavetableOsc(std::vector<float> firstFrameData)
     {
+        phase = 0.0f;
         sampleRate = 44100.0f;
         currentPosition = 0.0f;
         numFrames = 0;
@@ -129,13 +159,6 @@ public:
     WavetableOsc(juce::File wavData);
     ~WavetableOsc() {}
     void replaceTables(juce::String nTables);
-    void clockFrames(double frequency)
-    {
-        for(frameIndex = 0; frameIndex < numFrames; ++frameIndex)
-        {
-            frames[frameIndex].clockSample(frequency);
-        }
-    }
     void setSampleRate(double newRate)
     {
         sampleRate = newRate;
@@ -163,29 +186,29 @@ public:
     }
     float getSample(double freq)
     {
-        clockFrames(freq);
-        if(numFrames < 2)
-            output = frames[0].getSample();
-        else
-        {
-            if(fabs(targetPosition - currentPosition) > maxSamplePosDelta)
+        phaseDelta = (float)freq / sampleRate;
+        phase += phaseDelta;
+        if(phase > 1.0f)
+            phase -= 1.0f;
+        if(fabs(targetPosition - currentPosition) > maxSamplePosDelta)
                 currentPosition = currentPosition + (maxSamplePosDelta * posDeltaSign);
-            else
-                currentPosition = targetPosition;
-            pFrame = currentPosition * (numFrames - 1);
-            lowerIndex = floor(pFrame);
-            skew = pFrame - lowerIndex;
-            upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
-            bSample = frames[lowerIndex].getSample();
-            tSample = frames[upperIndex].getSample();
-            output = bSample + ((tSample - bSample) * skew);
-        }
-        return clamp(output, 1.0f);
+        else
+            currentPosition = targetPosition;
+        pFrame = currentPosition * (numFrames - 1);
+        lowerIndex = floor(pFrame);
+        skew = pFrame - lowerIndex;
+        upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
+        bSample = frames[lowerIndex].getSample(phase);
+        tSample = frames[upperIndex].getSample(phase);
+        output = bSample + ((tSample - bSample) * skew);
+        return output;
     }
     std::vector<std::vector<float>> getDataToGraph(int resolution);
     juce::StringArray waveNames;
     float currentPosition;
 private:
+    float phase;
+    float phaseDelta;
     int frameIndex;
     int lowerIndex;
     int upperIndex;

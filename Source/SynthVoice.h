@@ -29,17 +29,25 @@ public:
 class WavetableVoice : public juce::SynthesiserVoice
 {
 public:
-    WavetableVoice(juce::Array<juce::File> files);
-    void pitchWheelMoved(int newPitchWheelVal) {}
+    WavetableVoice(juce::Array<juce::File>& files);
+    void pitchWheelMoved(int newPitchWheelVal) override {}
     //=============================================
-    void controllerMoved(int controllerNumber, int controllerValue) {}
+    void controllerMoved(int controllerNumber, int controllerValue) override {}
     //===============================================
-    void aftertouchChanged (int newAftertouchValue) {}
+    void startNote (int midiNoteNumber,
+                    float velocity,
+                    juce::SynthesiserSound *sound,
+                    int currentPitchWheelPosition) override;
+    //===============================================
+    void stopNote (float velocity, bool allowTailOff) override;
+    void aftertouchChanged (int newAftertouchValue) override {}
     //==============================================
-    void channelPressureChanged (int newChannelPressureValue) {}
+    void channelPressureChanged (int newChannelPressureValue) override {}
     //===============================================
-    void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples);
+    void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override;
+    
     double fundamental;
     WavetableOscHolder oscillator;
     DAHDSR envelope;
+    juce::Array<juce::File> fileArray;
 };
