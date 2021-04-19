@@ -12,7 +12,6 @@
 #include <JuceHeader.h>
 #include "RgbColor.h"
 #include "GlobalColor.h"
-#include "DAHDSR.cpp"
 
 //!  Processor-side handler for modulation
 class ModSource
@@ -36,15 +35,6 @@ private:
     std::atomic<float> depth; //depth is between -1 and 1 for bi-directional modulation
 };
 
-class ModSourceEnvelope : public ModSource, public DAHDSR
-{
-public:
-    ModSourceEnvelope();
-    float getOutput() override
-    {
-        return clockOutput();
-    }
-};
 
 const juce::Colour sourceRimColor = Color::RGBColor(37, 49, 53);
 

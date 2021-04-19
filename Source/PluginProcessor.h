@@ -60,9 +60,9 @@ public:
     juce::AudioProcessorValueTreeState tree;
     AudioWavetableHandler handler;
 private:
-    SynthParam<double> frequency;
+    SynthParam frequency;
     float lastSample;
-    SynthParam<float> position;
+    SynthParam position;
 public:
     WavetableOscHolder osc;
     //==============================================================================

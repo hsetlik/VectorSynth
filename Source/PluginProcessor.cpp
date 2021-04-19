@@ -34,6 +34,8 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
 {
     osc.waveNames = handler.tableNames;
     osc.waveFiles = handler.wavFiles;
+    frequency.setRange(20000.0f, 150.0f);
+    position.setRange(1.0f, 0.0f);
 }
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()
 {
