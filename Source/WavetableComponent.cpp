@@ -13,6 +13,7 @@ WavetableDisplay::WavetableDisplay(std::vector<std::vector<float>> data, juce::S
 fake3d(true),
 valueSet(data),
 position(pos),
+lastPosition(pos),
 highlight(UXColor::highlight),
 currentValues(128, 0.0f)
 {
@@ -27,6 +28,7 @@ currentValues(128, 0.0f)
         traces.add(new juce::Path());
     }
     colors.add(Color::shadesBetween(Color::RGBColor(199, 200, 202), UXColor::grayShadeD, numTraces));
+    setPosition(position);
 }
 
 void WavetableDisplay::setPosition(float pos)
@@ -38,14 +40,14 @@ void WavetableDisplay::setPosition(float pos)
     auto& upperData = valueSet[upperIdx];
     auto& lowerData = valueSet[lowerIdx];
     auto skew = (position * (numTraces - 1) * 0.99f) - (float)lowerIdx;
-    auto aExp = 0.65f;
+    auto aExp = 0.98f;
     auto tColorA = highlight.withBrightness(highlight.getBrightness() / 8).withSaturation(highlight.getSaturation() / 6);
     auto tColorB = highlight.withBrightness(highlight.getBrightness() * 0.8f);
     for(int i = 0; i < numTraces; ++i)
     {
         auto diff = fabs(i - (position * (numTraces - 1)));
         auto alpha = 1.0f * pow(aExp, diff);
-        auto col = Color::blendHSB(tColorA, tColorB, alpha);
+        auto col = Color::blendHSB(tColorA, tColorB, alpha * 0.6f);
         workingColors.set(i, col);
     }
     for(int i = 0; i < resolution; ++i)
@@ -120,7 +122,11 @@ void WavetableDisplay::paint(juce::Graphics &g)
 void WavetableDisplay::sliderValueChanged(juce::Slider *s)
 {
     setPosition((float)s->getValue());
-    repaint();
+    if(fabs(position - lastPosition) > (0.5f / numTraces))
+    {
+        repaint();
+        lastPosition = position;
+    }
 }
 
 WaveSelector::WaveSelector(WavetableOscHolder* o, juce::ComboBox::Listener* list) : osc(o), lButton(true, this), rButton(false, this), tableNames(osc->waveNames)

@@ -129,13 +129,6 @@ public:
     WavetableOsc(juce::File wavData);
     ~WavetableOsc() {}
     void replaceTables(juce::String nTables);
-    void clockFrames(double frequency)
-    {
-        for(frameIndex = 0; frameIndex < numFrames; ++frameIndex)
-        {
-            frames[frameIndex].clockSample(frequency);
-        }
-    }
     void setSampleRate(double newRate)
     {
         sampleRate = newRate;

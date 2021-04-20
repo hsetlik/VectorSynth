@@ -46,6 +46,7 @@ private:
     int numTraces;
     std::vector<std::vector<float>> valueSet;
     float position;
+    float lastPosition;
     juce::Slider* sourceSlider;
     juce::Colour background;
     juce::OwnedArray<juce::Path> traces;
