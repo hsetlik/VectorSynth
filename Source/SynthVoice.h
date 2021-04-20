@@ -81,6 +81,13 @@ public:
         for(auto voice : WTvoices)
             voice->setSampleRate(newRate);
     }
+    std::vector<std::vector<float>> getDataToGraph()
+    {
+        return WTvoices[0]->osc.getDataToGraph(128);
+    }
+    void replaceWave(int index);
+    juce::StringArray getWaveNames();
+    float getPosition();
 private:
     std::vector<WavetableVoice*> WTvoices; //  vector of  WavetableVoice pointers so I don't need to dynamic cast continuously
     juce::File waveFolder; // this class stores the wavetable folder, component-side code that needs files or names should be constructed with a pointer to this

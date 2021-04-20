@@ -10,7 +10,7 @@
 
 #include "EnvelopeComponent.h"
 
-DAHDSRPanel::DAHDSRPanel(juce::DragAndDropContainer* c) :
+DAHDSRPanel::DAHDSRPanel(juce::DragAndDropContainer* c, juce::AudioProcessorValueTreeState* tree) :
 sDelay(c, DelaySlider, 0),
 sAttack(c, AttackSlider, 0),
 sHold(c, HoldSlider, 0),
@@ -42,6 +42,13 @@ envModSource(c, "dummySource")
     
     addAndMakeVisible(&graph);
     addAndMakeVisible(&envModSource);
+    
+    aDelay.reset(new sAttach(*tree, "delayParam", sDelay.mTarget));
+    aAttack.reset(new sAttach(*tree, "attackParam", sAttack.mTarget));
+    aHold.reset(new sAttach(*tree, "holdParam", sHold.mTarget));
+    aDecay.reset(new sAttach(*tree, "decayParam", sDecay.mTarget));
+    aSustain.reset(new sAttach(*tree, "sustainParam", sSustain.mTarget));
+    aRelease.reset(new sAttach(*tree, "releaseParam", sRelease.mTarget));
 }
 
 void DAHDSRPanel::resized()

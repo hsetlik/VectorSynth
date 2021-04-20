@@ -71,3 +71,31 @@ WavetableSynth::WavetableSynth(juce::AudioProcessorValueTreeState* t) : tree(t)
     }
     addSound(new WavetableSound());
 }
+
+void WavetableSynth::replaceWave(int index)
+{
+    auto files = waveFolder.findChildFiles(juce::File::findFiles, true);
+    auto file = files[index];
+    for(auto voice : WTvoices)
+    {
+        voice->osc.replaceFromFile(file);
+    }
+}
+
+juce::StringArray WavetableSynth::getWaveNames()
+{
+    auto files = waveFolder.findChildFiles(juce::File::findFiles, true);
+    juce::StringArray arr;
+    for(auto file : files)
+    {
+        arr.add(file.getFileName());
+    }
+    return arr;
+}
+
+float WavetableSynth::getPosition()
+{
+    return WTvoices[0]->osc.getPosition();
+}
+
+
