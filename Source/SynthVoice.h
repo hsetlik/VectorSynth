@@ -12,6 +12,7 @@
 #include <JuceHeader.h>
 #include "WavetableProcessor.h"
 #include "DAHDSR.h"
+#define NUM_VOICES 6
 
 class WavetableSound : public juce::SynthesiserSound
 {

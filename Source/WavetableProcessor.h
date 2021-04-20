@@ -99,17 +99,17 @@ public:
     int createTables(double* waveReal, double* waveImag, int numSamples);
     float makeTable(double* waveReal, double* waveImag, int numSamples, double scale, double bottomFreq, double topFreq);
     float getSample() {return output;}
+    float getSample(float phase);
     WaveTable* tableForFreq(double frequency);
     std::vector<float> getBasicVector(int resolution);
-    void clockSample(double frequency);
 private:
     WaveTable* pTables;
     WaveTable* rawTable;
     double lastMinFreq;
     int tablesAdded;
     std::vector<float> data; //the initial input data from which all the tables are made
-    float position;
-    float posDelta;
+    float phase;
+    float phaseDelta;
     float output;
     double sampleRate;
     int bottomSampleIndex;
@@ -163,7 +163,10 @@ public:
     }
     float getSample(double freq)
     {
-        clockFrames(freq);
+        phaseDelta = (float) freq / sampleRate;
+        phase += phaseDelta;
+        if(phase > 1.0f)
+            phase -= 1.0f;
         if(numFrames < 2)
             output = frames[0].getSample();
         else
@@ -176,8 +179,8 @@ public:
             lowerIndex = floor(pFrame);
             skew = pFrame - lowerIndex;
             upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
-            bSample = frames[lowerIndex].getSample();
-            tSample = frames[upperIndex].getSample();
+            bSample = frames[lowerIndex].getSample(phase);
+            tSample = frames[upperIndex].getSample(phase);
             output = bSample + ((tSample - bSample) * skew);
         }
         return clamp(output, 1.0f);
@@ -199,6 +202,8 @@ private:
     float bSample;
     float output;
     double sampleRate;
+    float phase;
+    float phaseDelta;
     WavetableFrame* frames;
 };
 

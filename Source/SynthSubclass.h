@@ -14,10 +14,10 @@
 #include "DAHDSR.h"
 #include "SynthVoice.h"
 
+
 class WavetableSynth : public juce::Synthesiser
 {
 public:
-    const int NUMOSCILLATORS = 4;
     void noteOn (int midiChannel, int midiNoteNumber, float velocity) override;
     void noteOff (int midiChannel, int midiNoteNumber, float velocity, bool allowTailOff) override;
     
