@@ -9,3 +9,10 @@
 */
 
 #include "SynthVoice.h"
+WavetableVoice::WavetableVoice(juce::AudioProcessorValueTreeState* t, juce::File& defaultWave) :
+    osc(defaultWave),
+    env(t),
+    tree(t)
+{
+    
+}

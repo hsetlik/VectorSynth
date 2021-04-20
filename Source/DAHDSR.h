@@ -10,9 +10,7 @@
 
 #pragma once
 #include <JuceHeader.h>
-struct envDataSet {
-    double delay, attack, hold, decay, sustain, release;
-};
+#include <math.h>
 
 class DAHDSR
 {
@@ -27,48 +25,121 @@ public:
         releasePhase,
         noteOff
     };
+    juce::AudioProcessorValueTreeState* tree;
     //functions
-    DAHDSR(int ind) : factor(1.0f), sampleRate(44100), index(ind)
+    //! the index should be incremented for each DAHDSR you plan to attach to a given APVTS
+    DAHDSR(int ind, juce::AudioProcessorValueTreeState* t) : tree(t), factor(1.0f), sampleRate(44100), index(ind)
     {
         trigger = false;
         samplesIntoPhase = 0;
         currentPhase = noteOff;
+        output = 0.0f;
+        auto iStr = juce::String(ind);
+        delayId = "delayParam" + iStr;
+        attackId = "attackParam" + iStr;
+        holdId = "holdParam" + iStr;
+        decayId = "decayParam" + iStr;
+        sustainId = "sustainParam" + iStr;
+        releaseId = "releaseParam" + iStr;
+    }
+    //!  Constructor with no suffix for strings (if you only need one envelope attached to the APVTS)
+    DAHDSR(juce::AudioProcessorValueTreeState* t) : tree(t), factor(1.0f), sampleRate(44100), index(0)
+    {
+        trigger = false;
+        samplesIntoPhase = 0;
+        currentPhase = noteOff;
+        output = 0.0f;
+        delayId = "delayParam";
+        attackId = "attackParam";
+        holdId = "holdParam";
+        decayId = "decayParam";
+        sustainId = "sustainParam";
+        releaseId = "releaseParam";
     }
     ~DAHDSR() {}
+    static envPhase nextPhase(envPhase input)
+    {
+        if(input != noteOff)
+            return (envPhase)(input + 1);
+        else
+            return noteOff;
+    }
     void triggerOn()
     {
         trigger = true;
-        samplesInPhase = floor(settings.delay * (sampleRate / 1000));
-        samplesIntoPhase = 0;
-        currentPhase = delayPhase;
+        enterPhase(delayPhase);
+    }
+    float valueOf(juce::String& str)
+    {
+        return *tree->getRawParameterValue(str);
+    }
+    std::atomic<float>* ptrValue(juce::String str)
+    {
+        return tree->getRawParameterValue(str);
+    }
+    void updateParams()
+    {
+        delayTime = valueOf(delayId);
+        attackTime = valueOf(attackId);
+        holdTime = valueOf(holdId);
+        decayTime = valueOf(decayId);
+        sustainLevel = valueOf(sustainId);
+        releaseTime = valueOf(releaseId);
     }
     void triggerOff()
     {
         trigger = false;
-        currentPhase = releasePhase;
-        samplesIntoPhase = 0;
-        samplesInPhase = settings.release * (sampleRate / 1000);
-        factor = exp((log(minLevel) - log(settings.sustain)) /samplesInPhase);
+        enterPhase(releasePhase);
     }
+    void updatePhase()
+    {
+        if(samplesIntoPhase > samplesInPhase || samplesInPhase < 1)
+        {
+            enterPhase(nextPhase(currentPhase));
+        }
+    }
+    void enterPhase(envPhase newPhase);
+    float factorFor(float startLevel, float endLevel, float lengthMs);
     void setSampleRate(double value) {sampleRate = value;}
     float process(float input);
     envPhase getPhase() {return currentPhase;}
-    double output;
-    void setDelay(double val) {settings.delay = val;}
-    void setAttack(double val) {settings.attack = val;}
-    void setHold(double val) {settings.hold = val;}
-    void setDecay(double val) {settings.decay = val;}
-    void setSustain(double val) {settings.sustain = val;}
-    void setRelease(double val) {settings.release = val;}
+    bool isActive()
+    {
+        if(currentPhase == envPhase::noteOff)
+            return false;
+        return true;
+    }
+    float output;
 private:
-    envDataSet settings;
     //data
+    static unsigned long long phaseSafe(unsigned long long input) //to avoid divide-by-zero errors
+    {
+        if(input > 0)
+            return input;
+        return 1;
+    }
     envPhase currentPhase;
     unsigned long long samplesIntoPhase;
     unsigned long long samplesInPhase;
-    double factor;
+    float factor;
     float minLevel = 0.00001f;
     double sampleRate;
     int index;
     bool trigger;
+    juce::String delayId;
+    juce::String attackId;
+    juce::String holdId;
+    juce::String decayId;
+    juce::String sustainId;
+    juce::String releaseId;
+private:
+    float delayTime = 0.0f;
+    float attackTime = 20.0f;
+    float holdTime = 0.0f;
+    float decayTime = 100.0f;
+    float sustainLevel = 0.6f;
+    float releaseTime = 40.0f;
+    
+    float startLevel;
+    float endLevel;
 };

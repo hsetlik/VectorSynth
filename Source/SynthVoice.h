@@ -30,15 +30,32 @@ public:
 class WavetableVoice : public juce::SynthesiserVoice
 {
 public:
-    WavetableVoice(juce::Array<juce::File> files);
-    void pitchWheelMoved(int newPitchWheelVal) {}
+    WavetableVoice(juce::AudioProcessorValueTreeState* t, juce::File& defaultWave);
+    bool canPlaySound(juce::SynthesiserSound* sound) override
+    {
+        return dynamic_cast<WavetableSound*>(sound) != nullptr;
+    }
+    void stopNote (float velocity, bool allowTailOff) override;
+    void startNote (int midiNoteNumber,
+                    float velocity,
+                    juce::SynthesiserSound *sound,
+                    int currentPitchWheelPosition) override;
+    void pitchWheelMoved(int newPitchWheelVal) override {}
+    void setSampleRate(double newRate)
+    {
+        osc.setSampleRate(newRate);
+        env.setSampleRate(newRate);
+    }
     //=============================================
-    void controllerMoved(int controllerNumber, int controllerValue) {}
+    void controllerMoved(int controllerNumber, int controllerValue) override {}
     //===============================================
-    void aftertouchChanged (int newAftertouchValue) {}
+    void aftertouchChanged (int newAftertouchValue) override {}
     //==============================================
-    void channelPressureChanged (int newChannelPressureValue) {}
+    void channelPressureChanged (int newChannelPressureValue) override{}
     //===============================================
-    void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples);
+    void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override;
     double fundamental;
+    WavetableOscHolder osc;
+    DAHDSR env;
+    juce::AudioProcessorValueTreeState* tree;
 };
