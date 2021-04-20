@@ -12,10 +12,11 @@
 #include <JuceHeader.h>
 #include "EnvelopeComponent.h"
 #include "WavetableComponent.h"
+#include "SynthVoice.h"
 class DummyContainer : public juce::DragAndDropContainer, public juce::Component
 {
 public:
-    DummyContainer(juce::AudioProcessorValueTreeState* t,  WavetableOscHolder* o) : panel(this, t, o)
+    DummyContainer(juce::AudioProcessorValueTreeState* t,  WavetableSynth* o) : panel(this, t, o)
     {
         addAndMakeVisible(&panel);
     }

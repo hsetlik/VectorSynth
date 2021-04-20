@@ -25,12 +25,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout makeLayout()
     auto sustainRange = fRange(SUSTAIN_MIN, SUSTAIN_MAX, 0.0001f);
     auto releaseRange = fRange(RELEASE_MIN, RELEASE_MAX, 0.1f);
     releaseRange.setSkewForCentre(RELEASE_CENTER);
-    layout.add(std::make_unique<juce::AudioParameterFloat>("oscPositonParam", "wavetable position", posRange, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("oscPositionParam", "wavetable position", posRange, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("delayParam", "Delay", delayRange, DELAY_DEFAULT));
     layout.add(std::make_unique<juce::AudioParameterFloat>("attackParam", "Attack", attackRange, ATTACK_DEFAULT));
     layout.add(std::make_unique<juce::AudioParameterFloat>("holdParam", "Hold", holdRange, HOLD_DEFAULT));
     layout.add(std::make_unique<juce::AudioParameterFloat>("decayParam", "Decay", decayRange, DECAY_DEFAULT));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("sutainParam", "Sustain", sustainRange, SUSTAIN_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("sustainParam", "Sustain", sustainRange, SUSTAIN_DEFAULT));
     layout.add(std::make_unique<juce::AudioParameterFloat>("releaseParam", "Release", releaseRange, RELEASE_DEFAULT));
     return layout;
 }
@@ -45,11 +45,11 @@ WavetableSynthesizerAudioProcessor::WavetableSynthesizerAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), tree(*this, nullptr, "AllParameters", makeLayout()), osc(handler.getWav(1))
+                       ), tree(*this, nullptr, "AllParameters", makeLayout()),
+synth(&tree)
 #endif
 {
-    osc.waveNames = handler.tableNames;
-    osc.waveFiles = handler.wavFiles;
+    
 }
 WavetableSynthesizerAudioProcessor::~WavetableSynthesizerAudioProcessor()
 {
@@ -122,7 +122,7 @@ void WavetableSynthesizerAudioProcessor::prepareToPlay (double sampleRate, int s
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    osc.setSampleRate(sampleRate);
+    synth.setAllSampleRate(sampleRate);
 }
 
 void WavetableSynthesizerAudioProcessor::releaseResources()
@@ -160,20 +160,7 @@ bool WavetableSynthesizerAudioProcessor::isBusesLayoutSupported (const BusesLayo
 void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     buffer.clear();
-    frequency = (double)*tree.getRawParameterValue("frequency");
-    if(*tree.getRawParameterValue("wavetablePos") != position)
-    {
-        position = *tree.getRawParameterValue("wavetablePos");
-        osc.setPosition(position);
-    }
-        for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
-        {
-            lastSample = osc.getSample(frequency);
-            for(int channel = 0; channel < 2; ++channel)
-            {
-                buffer.addSample(channel, sample, lastSample * 0.25f);
-            }
-        }
+    synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
 //==============================================================================

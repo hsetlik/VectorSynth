@@ -64,7 +64,7 @@ private:
     float lastSample;
     float position;
 public:
-    WavetableOscHolder osc;
+    WavetableSynth synth;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (WavetableSynthesizerAudioProcessor)
 };
