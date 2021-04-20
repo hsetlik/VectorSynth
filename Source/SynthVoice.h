@@ -45,6 +45,12 @@ public:
     {
         osc.setSampleRate(newRate);
         env.setSampleRate(newRate);
+        setCurrentPlaybackSampleRate(newRate);
+    }
+    void updateParams()
+    {
+        env.updateParams();
+        osc.updatePosition(tree, posId);
     }
     //=============================================
     void controllerMoved(int controllerNumber, int controllerValue) override {}
@@ -55,7 +61,28 @@ public:
     //===============================================
     void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override;
     double fundamental;
+    float oscPosition;
     WavetableOscHolder osc;
     DAHDSR env;
+    juce::AudioProcessorValueTreeState* tree;
+    juce::String posId;
+    int sample;
+    int channel;
+    float lastVoiceOutput;
+};
+
+class WavetableSynth : public juce::Synthesiser
+{
+public:
+    WavetableSynth(juce::AudioProcessorValueTreeState* t);
+    void setAllSampleRate(double newRate)
+    {
+        setCurrentPlaybackSampleRate(newRate);
+        for(auto voice : WTvoices)
+            voice->setSampleRate(newRate);
+    }
+private:
+    std::vector<WavetableVoice*> WTvoices; //  vector of  WavetableVoice pointers so I don't need to dynamic cast continuously
+    juce::File waveFolder; // this class stores the wavetable folder, component-side code that needs files or names should be constructed with a pointer to this
     juce::AudioProcessorValueTreeState* tree;
 };

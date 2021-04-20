@@ -129,13 +129,6 @@ public:
     WavetableOsc(juce::File wavData);
     ~WavetableOsc() {}
     void replaceTables(juce::String nTables);
-    void clockFrames(double frequency)
-    {
-        for(frameIndex = 0; frameIndex < numFrames; ++frameIndex)
-        {
-            frames[frameIndex].clockSample(frequency);
-        }
-    }
     void setSampleRate(double newRate)
     {
         sampleRate = newRate;
@@ -229,6 +222,10 @@ public:
     juce::StringArray waveNames;
     juce::Array<juce::File> waveFiles;
     float getPosition() {return osc->currentPosition;}
+    void updatePosition(juce::AudioProcessorValueTreeState* tree, juce::String& str)
+    {
+        setPosition(tree->getRawParameterValue(str)->load());
+    }
 private:
     std::unique_ptr<WavetableOsc> osc;
 };

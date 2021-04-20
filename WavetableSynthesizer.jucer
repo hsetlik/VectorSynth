@@ -40,9 +40,6 @@
       <GROUP id="{0A78967F-125D-963F-4066-9AFC0A51B95D}" name="Synthesis">
         <FILE id="wZ8j5W" name="DAHDSR.cpp" compile="1" resource="0" file="Source/DAHDSR.cpp"/>
         <FILE id="tfJss1" name="DAHDSR.h" compile="0" resource="0" file="Source/DAHDSR.h"/>
-        <FILE id="PTDqaX" name="SynthSubclass.cpp" compile="1" resource="0"
-              file="Source/SynthSubclass.cpp"/>
-        <FILE id="sHNWq4" name="SynthSubclass.h" compile="0" resource="0" file="Source/SynthSubclass.h"/>
         <FILE id="lb1mta" name="SynthVoice.cpp" compile="1" resource="0" file="Source/SynthVoice.cpp"/>
         <FILE id="WYmN0T" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
         <FILE id="gWjZCH" name="WavetableData.h" compile="0" resource="0" file="Source/WavetableData.h"/>
