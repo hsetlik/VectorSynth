@@ -10,12 +10,28 @@
 #include "PluginEditor.h"
 juce::AudioProcessorValueTreeState::ParameterLayout makeLayout()
 {
+    using fRange = juce::NormalisableRange<float>;
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
-    juce::NormalisableRange<float> freqRange(150.0f, 20000.0f, 20.0f, 0.5f);
-    freqRange.setSkewForCentre(1500.0f);
-    layout.add(std::make_unique<juce::AudioParameterFloat>("frequency", "Frequency", freqRange, 150.0f));
-    juce::NormalisableRange<float> posRange(0.0f, 1.0f);
-    layout.add(std::make_unique<juce::AudioParameterFloat>("wavetablePos", "wavetable position", posRange, 0.0f));
+    fRange posRange(0.0f, 1.0f, 0.0001f);
+    
+    auto delayRange = fRange(DELAY_MIN, DELAY_MAX, 0.1f);
+    delayRange.setSkewForCentre(DELAY_CENTER);
+    auto attackRange = fRange(ATTACK_MIN, ATTACK_MAX, 0.1f);
+    attackRange.setSkewForCentre(ATTACK_CENTER);
+    auto holdRange = fRange(HOLD_MIN, HOLD_MAX, 0.1f);
+    holdRange.setSkewForCentre(HOLD_CENTER);
+    auto decayRange = fRange(DECAY_MIN, DECAY_MAX, 0.1f);
+    decayRange.setSkewForCentre(DECAY_CENTER);
+    auto sustainRange = fRange(SUSTAIN_MIN, SUSTAIN_MAX, 0.0001f);
+    auto releaseRange = fRange(RELEASE_MIN, RELEASE_MAX, 0.1f);
+    releaseRange.setSkewForCentre(RELEASE_CENTER);
+    layout.add(std::make_unique<juce::AudioParameterFloat>("oscPositonParam", "wavetable position", posRange, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("delayParam", "Delay", delayRange, DELAY_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("attackParam", "Attack", attackRange, ATTACK_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("holdParam", "Hold", holdRange, HOLD_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("decayParam", "Decay", decayRange, DECAY_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("sutainParam", "Sustain", sustainRange, SUSTAIN_DEFAULT));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("releaseParam", "Release", releaseRange, RELEASE_DEFAULT));
     return layout;
 }
 
