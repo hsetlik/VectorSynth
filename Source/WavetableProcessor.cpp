@@ -277,6 +277,17 @@ float WavetableFrame::getSample(float newPhase)
     
 }
 
+float WavetableFrame::getSample(float newPhase, double freq)
+{
+    phaseDelta = (float)freq / sampleRate;
+    auto table = tableForFreq(phaseDelta);
+    bottomSampleIndex = (int)(table->length * newPhase);
+    skew = (table->length * newPhase) - bottomSampleIndex;
+    sampleDiff = table->table[bottomSampleIndex + 1] - table->table[bottomSampleIndex];
+    output = table->table[bottomSampleIndex] + (skew * sampleDiff);
+    return output;
+}
+
 std::vector<float> WavetableFrame::getBasicVector(int resolution)
 {
     std::vector<float> out;

@@ -9,9 +9,11 @@
 */
 
 #include "SynthVoice.h"
-WavetableVoice::WavetableVoice(juce::AudioProcessorValueTreeState* t, juce::File& defaultWave) :
+WavetableVoice::WavetableVoice(juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o) :
     fundamental(440.0f),
-    osc(defaultWave),
+    phase(0.0f),
+    phaseDelta(0.0f),
+    pOsc(o),
     env(t),
     tree(t),
     posId("oscPositionParam")
@@ -22,6 +24,7 @@ void WavetableVoice::startNote(int midiNoteNumber, float velocity, juce::Synthes
 {
     fundamental = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
     env.triggerOn();
+    phaseDelta = (float)fundamental / currentRate;
 }
 void WavetableVoice::stopNote(float velocity, bool allowTailOff)
 {
@@ -33,18 +36,25 @@ void WavetableVoice::stopNote(float velocity, bool allowTailOff)
 void WavetableVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
     outputBuffer.clear();
-    updateParams();
+    //updateParams();
     for(sample = startSample; sample < (startSample + numSamples); ++sample)
     {
-        lastVoiceOutput = env.process(osc.getSample(fundamental));
+        phase += phaseDelta;
+        if(phase > 1.0f)
+            phase -= 1.0f;
+        lastVoiceOutput = pOsc->getSample(phase, fundamental);
+        /*
+        if(fundamental != 0.00f)
+            printf("sample\n");
+         */
         for(channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
         {
-            outputBuffer.addSample(channel, sample, lastVoiceOutput * 0.6f);
+            outputBuffer.addSample(channel, sample, lastVoiceOutput * 0.5f);
         }
     }
 }
 
-WavetableSynth::WavetableSynth(juce::AudioProcessorValueTreeState* t) : tree(t)
+WavetableSynth::WavetableSynth(juce::AudioProcessorValueTreeState* t) : osc(getDefaultTable()), tree(t)
 {
     auto appFolder = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
     appFolder.setAsCurrentWorkingDirectory();
@@ -65,7 +75,7 @@ WavetableSynth::WavetableSynth(juce::AudioProcessorValueTreeState* t) : tree(t)
     auto defaultWave = files[0];
     for(int i = 0; i < NUM_VOICES; ++i)
     {
-        addVoice(new WavetableVoice(tree, defaultWave));
+        addVoice(new WavetableVoice(tree, &osc));
         auto pVoice = dynamic_cast<WavetableVoice*>(voices.getLast());
         WTvoices.push_back(pVoice);
     }
@@ -76,10 +86,7 @@ void WavetableSynth::replaceWave(int index)
 {
     auto files = waveFolder.findChildFiles(juce::File::findFiles, true);
     auto file = files[index];
-    for(auto voice : WTvoices)
-    {
-        voice->osc.replaceFromFile(file);
-    }
+    osc.replaceFromFile(file);
 }
 
 juce::StringArray WavetableSynth::getWaveNames()
@@ -95,7 +102,7 @@ juce::StringArray WavetableSynth::getWaveNames()
 
 float WavetableSynth::getPosition()
 {
-    return WTvoices[0]->osc.getPosition();
+    return osc.getPosition();
 }
 
 

@@ -100,6 +100,7 @@ public:
     float makeTable(double* waveReal, double* waveImag, int numSamples, double scale, double bottomFreq, double topFreq);
     float getSample() {return output;}
     float getSample(float phase);
+    float getSample(float phase, double freq);
     WaveTable* tableForFreq(double frequency);
     std::vector<float> getBasicVector(int resolution);
 private:
@@ -178,6 +179,28 @@ public:
         }
         return clamp(output, 1.0f);
     }
+    float getSample(float newPhase, double frequency)
+    {
+        phaseDelta = (float)frequency / sampleRate;
+        phase = newPhase;
+        if(numFrames < 2)
+            output = frames[0].getSample();
+        else
+        {
+            if(fabs(targetPosition - currentPosition) > maxSamplePosDelta)
+                currentPosition = currentPosition + (maxSamplePosDelta * posDeltaSign);
+            else
+                currentPosition = targetPosition;
+            pFrame = currentPosition * (numFrames - 1);
+            lowerIndex = floor(pFrame);
+            skew = pFrame - lowerIndex;
+            upperIndex = (lowerIndex == (numFrames - 1)) ? 0 : lowerIndex + 1;
+            bSample = frames[lowerIndex].getSample(newPhase, frequency);
+            tSample = frames[upperIndex].getSample(newPhase, frequency);
+            output = bSample + ((tSample - bSample) * skew);
+        }
+        return clamp(output, 1.0f);
+    }
     std::vector<std::vector<float>> getDataToGraph(int resolution);
     juce::StringArray waveNames;
     float currentPosition;
@@ -214,17 +237,14 @@ public:
     }
     void setPosition(float pos) {osc->setPosition(pos);}
     void setSampleRate(double rate) {osc->setSampleRate(rate);}
-    float getSample(double freq)
-    {
-        return osc->getSample(freq);
-    }
+    float getSample(float phase, double freq) {return osc->getSample(phase, freq);}
     std::vector<std::vector<float>> getDataToGraph(int resolution) {return osc->getDataToGraph(resolution);}
     juce::StringArray waveNames;
     juce::Array<juce::File> waveFiles;
     float getPosition() {return osc->currentPosition;}
-    void updatePosition(juce::AudioProcessorValueTreeState* tree, juce::String& str)
+    void updatePosition(juce::AudioProcessorValueTreeState* tree, juce::String str)
     {
-        setPosition(tree->getRawParameterValue(str)->load());
+        setPosition(*tree->getRawParameterValue(str));
     }
 private:
     std::unique_ptr<WavetableOsc> osc;

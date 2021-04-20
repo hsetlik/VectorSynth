@@ -30,7 +30,7 @@ public:
 class WavetableVoice : public juce::SynthesiserVoice
 {
 public:
-    WavetableVoice(juce::AudioProcessorValueTreeState* t, juce::File& defaultWave);
+    WavetableVoice(juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o);
     bool canPlaySound(juce::SynthesiserSound* sound) override
     {
         return dynamic_cast<WavetableSound*>(sound) != nullptr;
@@ -43,14 +43,13 @@ public:
     void pitchWheelMoved(int newPitchWheelVal) override {}
     void setSampleRate(double newRate)
     {
-        osc.setSampleRate(newRate);
+        currentRate = newRate;
         env.setSampleRate(newRate);
         setCurrentPlaybackSampleRate(newRate);
     }
     void updateParams()
     {
         env.updateParams();
-        osc.updatePosition(tree, posId);
     }
     //=============================================
     void controllerMoved(int controllerNumber, int controllerValue) override {}
@@ -61,19 +60,32 @@ public:
     //===============================================
     void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override;
     double fundamental;
+    double lastFundamental;
+    float phase;
+    float phaseDelta;
     float oscPosition;
-    WavetableOscHolder osc;
+    WavetableOscHolder* pOsc;
+    
     DAHDSR env;
     juce::AudioProcessorValueTreeState* tree;
     juce::String posId;
     int sample;
     int channel;
     float lastVoiceOutput;
+    double currentRate;
 };
 
 class WavetableSynth : public juce::Synthesiser
 {
 public:
+    static juce::File getDefaultTable()
+    {
+        auto appFolder = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
+        appFolder.setAsCurrentWorkingDirectory();
+        auto wFolder = appFolder.getChildFile("MyWavetables");
+        auto files = wFolder.findChildFiles(juce::File::findFiles, true);
+        return files[0];
+    }
     WavetableSynth(juce::AudioProcessorValueTreeState* t);
     void setAllSampleRate(double newRate)
     {
@@ -83,12 +95,17 @@ public:
     }
     std::vector<std::vector<float>> getDataToGraph()
     {
-        return WTvoices[0]->osc.getDataToGraph(128);
+        return osc.getDataToGraph(128);
     }
     void replaceWave(int index);
+    void update()
+    {
+        osc.updatePosition(tree, "oscPositionParam");
+    }
     juce::StringArray getWaveNames();
     float getPosition();
 private:
+    WavetableOscHolder osc;
     std::vector<WavetableVoice*> WTvoices; //  vector of  WavetableVoice pointers so I don't need to dynamic cast continuously
     juce::File waveFolder; // this class stores the wavetable folder, component-side code that needs files or names should be constructed with a pointer to this
     juce::AudioProcessorValueTreeState* tree;
