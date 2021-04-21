@@ -9,27 +9,29 @@
 */
 
 #include "SynthVoice.h"
-WavetableVoice::WavetableVoice(juce::File defaultWave, juce::AudioProcessorValueTreeState* t) :
+WavetableVoice::WavetableVoice(juce::File defaultWave, juce::AudioProcessorValueTreeState* t, int voiceIdx) :
     fundamental(440.0f),
-    phase(0.0f),
-    phaseDelta(0.0f),
     osc(defaultWave),
     tree(t),
-    posId("oscPositionParam")
+    posId("oscPositionParam"),
+    voiceIndex(voiceIdx),
+    noteOn(false)
 {
     
 }
 void WavetableVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound *sound, int currentPitchWheelPosition)
 {
     fundamental = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+    printf("%d\n", voiceIndex);
+    noteOn = true;
     //env.triggerOn();
-    phaseDelta = (float)fundamental / currentRate;
+    
 }
 void WavetableVoice::stopNote(float velocity, bool allowTailOff)
 {
     //env.triggerOff();
-    if(!allowTailOff)
-        clearCurrentNote();
+    noteOn = false;
+    clearCurrentNote();
 }
 
 void WavetableVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
@@ -38,11 +40,15 @@ void WavetableVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int
     //updateParams();
     for(sample = startSample; sample < (startSample + numSamples); ++sample)
     {
-        tickPosition();
-        lastVoiceOutput = osc.getSample(fundamental);
+        lastVoiceOutput = 0.0f;
+        if(noteOn)
+        {
+            tickPosition();
+            lastVoiceOutput = osc.getSample(fundamental);
+        }
         for(channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
         {
-            outputBuffer.addSample(channel, sample, lastVoiceOutput * 0.5f);
+            outputBuffer.addSample(channel, sample, lastVoiceOutput);
         }
     }
 }
@@ -68,7 +74,7 @@ WavetableSynth::WavetableSynth(juce::AudioProcessorValueTreeState* t) : tree(t)
     auto defaultWave = files[0];
     for(int i = 0; i < NUM_VOICES; ++i)
     {
-        addVoice(new WavetableVoice(defaultWave, tree));
+        addVoice(new WavetableVoice(defaultWave, tree, i));
         auto pVoice = dynamic_cast<WavetableVoice*>(voices.getLast());
         WTvoices.push_back(pVoice);
     }

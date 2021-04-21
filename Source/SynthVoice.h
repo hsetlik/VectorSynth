@@ -12,7 +12,7 @@
 #include <JuceHeader.h>
 #include "WavetableProcessor.h"
 #include "DAHDSR.h"
-#define NUM_VOICES 3
+#define NUM_VOICES 4
 
 class WavetableSound : public juce::SynthesiserSound
 {
@@ -30,7 +30,7 @@ public:
 class WavetableVoice : public juce::SynthesiserVoice
 {
 public:
-    WavetableVoice(juce::File defaultWave, juce::AudioProcessorValueTreeState* t);
+    WavetableVoice(juce::File defaultWave, juce::AudioProcessorValueTreeState* t, int voiceIdx);
     bool canPlaySound(juce::SynthesiserSound* sound) override
     {
         return dynamic_cast<WavetableSound*>(sound) != nullptr;
@@ -63,10 +63,6 @@ public:
     //===============================================
     void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples) override;
     double fundamental;
-    double lastFundamental;
-    float phase;
-    float phaseDelta;
-    float oscPosition;
     WavetableOscHolder osc;
     juce::AudioProcessorValueTreeState* tree;
     juce::String posId;
@@ -74,6 +70,8 @@ public:
     int channel;
     float lastVoiceOutput;
     double currentRate;
+    int voiceIndex;
+    bool noteOn;
 };
 
 class WavetableSynth : public juce::Synthesiser
