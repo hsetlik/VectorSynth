@@ -237,7 +237,7 @@ public:
     }
     void setPosition(float pos) {osc->setPosition(pos);}
     void setSampleRate(double rate) {osc->setSampleRate(rate);}
-    float getSample(float phase, double freq) {return osc->getSample(phase, freq);}
+    float getSample(double freq) {return osc->getSample(freq);}
     std::vector<std::vector<float>> getDataToGraph(int resolution) {return osc->getDataToGraph(resolution);}
     juce::StringArray waveNames;
     juce::Array<juce::File> waveFiles;

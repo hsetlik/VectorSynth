@@ -160,7 +160,7 @@ bool WavetableSynthesizerAudioProcessor::isBusesLayoutSupported (const BusesLayo
 void WavetableSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     buffer.clear();
-    synth.update();
+    
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 

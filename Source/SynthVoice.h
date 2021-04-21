@@ -12,7 +12,7 @@
 #include <JuceHeader.h>
 #include "WavetableProcessor.h"
 #include "DAHDSR.h"
-#define NUM_VOICES 6
+#define NUM_VOICES 3
 
 class WavetableSound : public juce::SynthesiserSound
 {
@@ -30,7 +30,7 @@ public:
 class WavetableVoice : public juce::SynthesiserVoice
 {
 public:
-    WavetableVoice(juce::AudioProcessorValueTreeState* t, WavetableOscHolder* o);
+    WavetableVoice(juce::File defaultWave, juce::AudioProcessorValueTreeState* t);
     bool canPlaySound(juce::SynthesiserSound* sound) override
     {
         return dynamic_cast<WavetableSound*>(sound) != nullptr;
@@ -44,12 +44,15 @@ public:
     void setSampleRate(double newRate)
     {
         currentRate = newRate;
-        env.setSampleRate(newRate);
         setCurrentPlaybackSampleRate(newRate);
     }
-    void updateParams()
+    void setPosition(float newPos)
     {
-        env.updateParams();
+        osc.setPosition(newPos);
+    }
+    void tickPosition()
+    {
+        osc.setPosition(*tree->getRawParameterValue(posId));
     }
     //=============================================
     void controllerMoved(int controllerNumber, int controllerValue) override {}
@@ -64,9 +67,7 @@ public:
     float phase;
     float phaseDelta;
     float oscPosition;
-    WavetableOscHolder* pOsc;
-    
-    DAHDSR env;
+    WavetableOscHolder osc;
     juce::AudioProcessorValueTreeState* tree;
     juce::String posId;
     int sample;
@@ -95,17 +96,13 @@ public:
     }
     std::vector<std::vector<float>> getDataToGraph()
     {
-        return osc.getDataToGraph(128);
+        return WTvoices[0]->osc.getDataToGraph(128);
     }
     void replaceWave(int index);
-    void update()
-    {
-        osc.updatePosition(tree, "oscPositionParam");
-    }
+    
     juce::StringArray getWaveNames();
     float getPosition();
 private:
-    WavetableOscHolder osc;
     std::vector<WavetableVoice*> WTvoices; //  vector of  WavetableVoice pointers so I don't need to dynamic cast continuously
     juce::File waveFolder; // this class stores the wavetable folder, component-side code that needs files or names should be constructed with a pointer to this
     juce::AudioProcessorValueTreeState* tree;
