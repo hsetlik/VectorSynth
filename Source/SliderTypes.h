@@ -32,7 +32,7 @@ public:
         s->addListener(this);
         auto vcrFont = juce::Font("WW Digital", 8.0f, 0);
         setEditable(true);
-        getLookAndFeel().setDefaultSansSerifTypeface(getLookAndFeel().getTypefaceForFont(vcrFont));
+        //getLookAndFeel().setDefaultSansSerifTypeface(getLookAndFeel().getTypefaceForFont(vcrFont));
         setJustificationType(juce::Justification::centred);
         setMinimumHorizontalScale(0.25);
         juce::String tempText;

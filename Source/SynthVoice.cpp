@@ -22,7 +22,7 @@ WavetableVoice::WavetableVoice(juce::File defaultWave, juce::AudioProcessorValue
 void WavetableVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound *sound, int currentPitchWheelPosition)
 {
     fundamental = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
-    printf("%d\n", voiceIndex);
+    //printf("%d\n", voiceIndex);
     noteOn = true;
     //env.triggerOn();
     
@@ -69,7 +69,7 @@ WavetableSynth::WavetableSynth(juce::AudioProcessorValueTreeState* t) : tree(t)
         waveFolder.setAsCurrentWorkingDirectory();
         printf("wave folder created\n");
     }
-    printf("Folder is at: %s\n", waveFolder.getFullPathName().toRawUTF8());
+    //printf("Folder is at: %s\n", waveFolder.getFullPathName().toRawUTF8());
     auto files = waveFolder.findChildFiles(juce::File::findFiles, true);
     auto defaultWave = files[0];
     for(int i = 0; i < NUM_VOICES; ++i)

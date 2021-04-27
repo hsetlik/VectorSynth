@@ -38,8 +38,8 @@ void WavetableDisplay::setPosition(float pos)
     auto& upperData = valueSet[upperIdx];
     auto& lowerData = valueSet[lowerIdx];
     auto skew = (position * (numTraces - 1) * 0.99f) - (float)lowerIdx;
-    auto aExp = 0.65f;
-    auto tColorA = highlight.withBrightness(highlight.getBrightness() / 8).withSaturation(highlight.getSaturation() / 6);
+    auto aExp = 0.95f;
+    auto tColorA = highlight.withBrightness(highlight.getBrightness() / 4).withSaturation(highlight.getSaturation() / 2);
     auto tColorB = highlight.withBrightness(highlight.getBrightness() * 0.8f);
     for(int i = 0; i < numTraces; ++i)
     {
@@ -98,6 +98,7 @@ void WavetableDisplay::paint(juce::Graphics &g)
                     g.strokePath(current, strokeType);
                 }
             }
+            
         }
         else
         {
