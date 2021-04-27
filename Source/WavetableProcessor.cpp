@@ -316,8 +316,8 @@ phaseDelta(0.0f)
     long currentSample = 0;
     auto buffer = juce::AudioBuffer<float>(1, TABLESIZE);
     buffer.clear();
-    const char* str = wavData.getFileName().toRawUTF8();
-    printf("File %s has %d frames\n", str, sNumFrames);
+    //const char* str = wavData.getFileName().toRawUTF8();
+    //printf("File %s has %d frames\n", str, sNumFrames);
     //NOTE: this is calling the default constructor, each table's data will have to be set appropriately
     frames = new WavetableFrame[sNumFrames];
     reader->read(&buffer, 0, TABLESIZE, currentSample, true, true);

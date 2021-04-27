@@ -42,6 +42,7 @@ public:
         repaint();
     }
 private:
+    juce::OpenGLContext glContext;
     bool fake3d;
     int resolution;
     int numTraces;
@@ -134,6 +135,7 @@ public:
     void resized() override;
     void comboBoxChanged(juce::ComboBox* c) override;
 private:
+    
     TablePositionSlider sPos;
     DAHDSRPanel envPanel;
     WavetableSynth* synth;

@@ -16,6 +16,7 @@ position(pos),
 highlight(UXColor::highlight),
 currentValues(128, 0.0f)
 {
+    glContext.attachTo(*getTopLevelComponent());
     sourceSlider = s;
     sourceSlider->addListener(this);
     background = UXColor::darkBkgnd;
@@ -60,7 +61,7 @@ void WavetableDisplay::paint(juce::Graphics &g)
     auto strokeType = juce::PathStrokeType(2.0f);
     g.setColour(background);
     auto fBounds = getBounds().toFloat();
-    g.fillRect(fBounds.reduced(2.0f));
+    g.fillAll();
     auto y0 = fBounds.getHeight() / 2.0f;
     auto amplitude = y0 * 0.75f;
     auto dX = fBounds.getWidth() / resolution;
