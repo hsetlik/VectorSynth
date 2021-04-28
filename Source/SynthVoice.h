@@ -12,7 +12,7 @@
 #include <JuceHeader.h>
 #include "WavetableProcessor.h"
 #include "DAHDSR.h"
-#define NUM_VOICES 4
+#define NUM_VOICES 1
 
 class WavetableSound : public juce::SynthesiserSound
 {
@@ -66,6 +66,7 @@ public:
     WavetableOscHolder osc;
     juce::AudioProcessorValueTreeState* tree;
     juce::String posId;
+    DAHDSR env;
     int sample;
     int channel;
     float lastVoiceOutput;

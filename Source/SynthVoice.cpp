@@ -14,6 +14,7 @@ WavetableVoice::WavetableVoice(juce::File defaultWave, juce::AudioProcessorValue
     osc(defaultWave),
     tree(t),
     posId("oscPositionParam"),
+    env(t),
     voiceIndex(voiceIdx),
     noteOn(false)
 {
@@ -23,6 +24,7 @@ void WavetableVoice::startNote(int midiNoteNumber, float velocity, juce::Synthes
 {
     fundamental = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
     //printf("%d\n", voiceIndex);
+    env.triggerOn();
     noteOn = true;
     //env.triggerOn();
     
@@ -32,19 +34,20 @@ void WavetableVoice::stopNote(float velocity, bool allowTailOff)
     //env.triggerOff();
     noteOn = false;
     clearCurrentNote();
+    env.triggerOff();
 }
 
 void WavetableVoice::renderNextBlock(juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
     outputBuffer.clear();
-    //updateParams();
+    env.updateParams();
     for(sample = startSample; sample < (startSample + numSamples); ++sample)
     {
         lastVoiceOutput = 0.0f;
         if(noteOn)
         {
             tickPosition();
-            lastVoiceOutput = osc.getSample(fundamental);
+            lastVoiceOutput = env.process(osc.getSample(fundamental));
         }
         for(channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
         {
